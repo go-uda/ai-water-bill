@@ -1,0 +1,1543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI's Water Bill</title>
+<meta name="description" content="How much water does AI actually use, where does it come from, and does your own usage matter? A conservative, audited analysis of AI and data-center water use in the United States.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI's Water Bill">
+<meta property="og:description" content="How much water does AI actually use, where does it come from, and does your own usage matter? A conservative, audited analysis of AI and data-center water use in the United States.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI's Water Bill">
+<meta name="twitter:description" content="How much water does AI actually use, where does it come from, and does your own usage matter? A conservative, audited analysis of AI and data-center water use in the United States.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💧</text></svg>">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* reset equivalent to the artifact runtime's injected baseline */
+:root{color-scheme:light dark}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<style>
+:root{
+  color-scheme:light;
+  --page:#f6f8f9; --surface:#ffffff; --surface-2:#eef2f5;
+  --ink:#14202b; --ink-2:#4c5b68; --muted:#7d8a95;
+  --hair:#dfe5ea; --axis:#c3ccd3; --grid:#e8edf1;
+  --s1:#2a78d6; --s1-soft:#d6e6f9; --s2:#eb6834; --s2-soft:#fbe0d4; --s3:#1baf7a; --s3-soft:#d3f1e5;
+  --de:#b8c2cb; --de-soft:#e6ebef;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --st1:#86b6ef; --st2:#3987e5; --st3:#256abf; --st4:#104281;
+  --stx1:#0b0b0b; --stx2:#ffffff; --stx3:#ffffff; --stx4:#ffffff;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --page:#0f1519; --surface:#182028; --surface-2:#1f2931;
+    --ink:#f2f5f7; --ink-2:#b7c2cc; --muted:#8593a0;
+    --hair:#273139; --axis:#39454f; --grid:#232d35;
+    --s1:#3987e5; --s1-soft:#1c3a5e; --s2:#d95926; --s2-soft:#4a2717; --s3:#199e70; --s3-soft:#154232;
+    --de:#5a6874; --de-soft:#2a343c;
+    --st1:#184f95; --st2:#256abf; --st3:#3987e5; --st4:#86b6ef;
+    --stx1:#ffffff; --stx2:#ffffff; --stx3:#ffffff; --stx4:#0b0b0b;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --page:#0f1519; --surface:#182028; --surface-2:#1f2931;
+  --ink:#f2f5f7; --ink-2:#b7c2cc; --muted:#8593a0;
+  --hair:#273139; --axis:#39454f; --grid:#232d35;
+  --s1:#3987e5; --s1-soft:#1c3a5e; --s2:#d95926; --s2-soft:#4a2717; --s3:#199e70; --s3-soft:#154232;
+  --de:#5a6874; --de-soft:#2a343c;
+  --st1:#184f95; --st2:#256abf; --st3:#3987e5; --st4:#86b6ef;
+  --stx1:#ffffff; --stx2:#ffffff; --stx3:#ffffff; --stx4:#0b0b0b;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+body{margin:0;background:var(--page);color:var(--ink);font-family:"Source Serif 4",Georgia,"Times New Roman",serif;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;letter-spacing:-.015em;text-wrap:balance;margin:0}
+h1{font-size:clamp(40px,6vw,64px);font-weight:800;line-height:1.02}
+h2{font-size:clamp(26px,3.2vw,34px);font-weight:700;line-height:1.15}
+h3{font-size:19px;font-weight:700;line-height:1.3}
+h4{font-size:15px;font-weight:600;line-height:1.3}
+p{margin:0 0 1em}
+a{color:inherit;text-decoration-color:var(--axis);text-underline-offset:.14em}
+a:hover{text-decoration-color:var(--s1)}
+:focus-visible{outline:2px solid var(--s1);outline-offset:2px}
+.eyebrow{font-family:Archivo,sans-serif;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+.prose{max-width:72ch}
+.prose ul{margin:0 0 1em;padding-left:22px;display:flex;flex-direction:column;gap:10px}
+.prose li{line-height:1.55}
+.note{font-size:14px;color:var(--ink-2);line-height:1.5}
+strong{font-weight:600}
+sup a{text-decoration:none;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:.7em}
+
+.mast{padding:56px 0 28px;border-bottom:1px solid var(--hair)}
+.mast .dek{font-size:21px;line-height:1.45;max-width:64ch;margin:20px 0 0}
+.mast .meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px}
+.mast .meta span{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--hair);border:1px solid var(--hair);margin:28px 0 0}
+.kpi{background:var(--surface);padding:18px}
+.kpi .l{font-family:Archivo,sans-serif;font-size:12.5px;font-weight:600;color:var(--muted)}
+.kpi .v{font-family:Archivo,sans-serif;font-size:33px;font-weight:700;line-height:1.05;margin:6px 0 4px;letter-spacing:-.02em}
+.kpi .v small{font-size:16px;font-weight:600;color:var(--ink-2);letter-spacing:0}
+.kpi .s{font-size:13.5px;color:var(--ink-2);line-height:1.4}
+
+nav.toc{position:sticky;top:0;z-index:5;background:var(--page);border-bottom:1px solid var(--hair)}
+nav.toc ol{list-style:none;margin:0;padding:0;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.toc ol::-webkit-scrollbar{display:none}
+nav.toc a{display:block;padding:12px;font-family:Archivo,sans-serif;font-size:13px;font-weight:600;color:var(--ink-2);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent}
+nav.toc a:hover{color:var(--ink);border-bottom-color:var(--s1)}
+
+section.sec{padding:56px 0 24px;border-bottom:1px solid var(--hair)}
+section.sec:last-of-type{border-bottom:0}
+.sec-head{display:grid;gap:10px;margin-bottom:22px}
+.sec-head .lead{font-size:18.5px;line-height:1.5;max-width:68ch}
+
+figure.chart{margin:28px 0 8px;background:var(--surface);border:1px solid var(--hair);padding:18px 18px 12px}
+figure.chart .t{font-family:Archivo,sans-serif;font-weight:700;font-size:16px;line-height:1.3}
+figure.chart .st{font-size:13.5px;color:var(--ink-2);margin:3px 0 10px;line-height:1.45}
+figure.chart .legend{display:flex;gap:16px;flex-wrap:wrap;margin:4px 0 10px;font-family:Archivo,sans-serif;font-size:12.5px;color:var(--ink-2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legend i.dash{width:16px;height:0;border-top:2px dashed var(--muted);vertical-align:3px;background:none}
+figure.chart svg{display:block;width:100%;height:auto;overflow:visible}
+figure.chart svg text{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;fill:var(--ink-2)}
+figure.chart svg text.rowlab{font-family:Archivo,sans-serif;font-size:13px;fill:var(--ink);font-weight:500}
+figure.chart svg text.val{fill:var(--ink);font-size:12px}
+figure.chart svg text.tick{fill:var(--muted);font-size:11.5px}
+figure.chart svg text.ref{fill:var(--ink-2);font-size:11.5px;font-family:Archivo,sans-serif;font-weight:600}
+figure.chart svg .grid{stroke:var(--grid);stroke-width:1}
+figure.chart svg .axis{stroke:var(--axis);stroke-width:1}
+figure.chart svg .refline{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}
+figure.chart svg .hit{fill:transparent}
+figure.chart svg g.row:hover .mark{opacity:.75}
+figure.chart figcaption{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.45}
+details.tbl{margin:0 0 20px;font-size:14px}
+details.tbl summary{cursor:pointer;font-family:Archivo,sans-serif;font-size:12.5px;font-weight:600;color:var(--ink-2);letter-spacing:.04em;text-transform:uppercase;padding:8px 0}
+details.tbl summary:hover{color:var(--ink)}
+.tscroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.4}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--hair);vertical-align:top}
+th{font-family:Archivo,sans-serif;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+td.num,th.num{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.em td{font-weight:600}
+.tt{position:fixed;z-index:50;pointer-events:none;background:var(--ink);color:var(--page);padding:8px 10px;font-size:12.5px;line-height:1.4;max-width:290px;border-radius:3px;opacity:0;transition:opacity .1s}
+.tt.on{opacity:1}
+.tt b{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:500;display:block;margin-bottom:2px}
+.tt .n{opacity:.85}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:20px 0}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+.callout{border-left:3px solid var(--s1);padding:6px 0 6px 18px;margin:22px 0}
+.callout.orange{border-left-color:var(--s2)}
+.callout.green{border-left-color:var(--s3)}
+.callout p:last-child{margin:0}
+.fork{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--hair);border:1px solid var(--hair);margin:18px 0}
+@media (max-width:640px){.fork{grid-template-columns:1fr}}
+.fork div{background:var(--surface);padding:14px 16px}
+.fork .v{font-family:Archivo,sans-serif;font-size:26px;font-weight:700;letter-spacing:-.02em}
+.fork .v small{font-size:13px;font-weight:600;color:var(--ink-2)}
+
+/* archetype cards */
+.people{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--hair);border:1px solid var(--hair);margin:24px 0 8px}
+@media (max-width:820px){.people{grid-template-columns:1fr}}
+.person{background:var(--surface);padding:18px;display:flex;flex-direction:column;gap:10px}
+.person .who{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.person .nm{font-family:Archivo,sans-serif;font-weight:700;font-size:19px;letter-spacing:-.01em}
+.person .tag{font-family:Archivo,sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.person .bio{font-size:14.5px;line-height:1.45;color:var(--ink-2);margin:0}
+.person .usage{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-2);background:var(--surface-2);padding:8px 10px;line-height:1.5}
+.person .figs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto;padding-top:6px;border-top:1px solid var(--hair)}
+.person .fig .fl{font-family:Archivo,sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.person .fig .fv{font-family:Archivo,sans-serif;font-size:23px;font-weight:700;line-height:1.1;letter-spacing:-.02em}
+.person .fig .fv small{font-size:13px;font-weight:600;color:var(--ink-2)}
+.person .fig .fn{font-size:12.5px;color:var(--ink-2);line-height:1.35;margin-top:2px}
+
+.dispute{border-top:1px solid var(--hair);margin:18px 0}
+.dispute .row{display:grid;grid-template-columns:170px 1fr 120px;gap:16px;padding:12px 0;border-bottom:1px solid var(--hair);font-size:14.5px;align-items:start}
+@media (max-width:700px){.dispute .row{grid-template-columns:1fr;gap:4px}}
+.dispute .where{font-family:Archivo,sans-serif;font-weight:700;font-size:13.5px}
+.dispute .where span{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.dispute .status{font-family:Archivo,sans-serif;font-size:12px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-2);padding-top:2px}
+.dispute .status.blocked{color:var(--crit)}
+.dispute .status.rule{color:var(--s1)}
+.dispute .status.ongoing{color:var(--serious)}
+
+.claim{display:grid;grid-template-columns:150px 1fr;gap:18px;padding:16px 0;border-top:1px solid var(--hair)}
+.claim:last-child{border-bottom:1px solid var(--hair)}
+@media (max-width:640px){.claim{grid-template-columns:1fr;gap:6px}}
+.claim .who{font-family:Archivo,sans-serif;font-size:13px;font-weight:700;line-height:1.3}
+.claim .who span{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:3px}
+.claim p{margin:0 0 .5em;font-size:15.5px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;font-family:Archivo,sans-serif;font-size:12px;font-weight:600;padding:3px 9px;border:1px solid var(--hair);background:var(--surface);color:var(--ink-2)}
+.chip::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--de)}
+.chip.strong::before{background:var(--good)}
+.chip.mod::before{background:var(--warn)}
+.chip.weak::before{background:var(--serious)}
+.chip.contested::before{background:var(--crit)}
+
+td.fix{font-family:Archivo,sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+td.fix.up{color:var(--crit)} td.fix.dn{color:var(--s1)} td.fix.ok{color:var(--good)}
+
+ol.src{padding-left:22px;font-size:13.5px;color:var(--ink-2);line-height:1.5}
+ol.src li{margin-bottom:5px;padding-left:4px}
+ol.src a{word-break:break-word}
+.conf{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin:18px 0}
+.conf div{font-size:14px;line-height:1.5}
+.conf h4{margin-bottom:6px}
+footer{padding:36px 0 56px;color:var(--muted);font-size:13px}
+.diagram svg{width:100%;height:auto;display:block;overflow:visible}
+.diagram text{font-family:Archivo,sans-serif;font-size:12.5px;fill:var(--ink)}
+.diagram text.m{font-family:"IBM Plex Mono",monospace;font-size:11.5px;fill:var(--ink-2)}
+.diagram .box{fill:var(--surface);stroke:var(--axis);stroke-width:1}
+.diagram .arrow{fill:none;stroke:var(--axis);stroke-width:1.5}
+</style>
+
+<div class="tt" id="tt" role="status" aria-live="polite"></div>
+
+<header class="mast">
+  <div class="wrap">
+    <div class="eyebrow">Deep research · 11 September 2026</div>
+    <h1 style="margin-top:10px">AI's Water Bill</h1>
+    <p class="dek">How much water does AI actually use, where does it come from, and does your own usage matter? Working conservatively throughout, three answers. A casual user's year of prompting costs less water than one toilet flush, while a heavy agentic user's costs about 160 showers and a fifth of a household's electricity. Roughly five sixths of all of it is consumed at power stations, not at data centers. And nationally it is under one percent of US freshwater consumption, which means the real problem is not scarcity but geography.</p>
+    <div class="meta"><span>Scope: US, 2023 actuals to 2030 projections</span><span>Basis: consumptive freshwater</span><span>Conservative case unless marked central</span><span>Inference only unless training is named</span></div>
+
+    <div class="kpis" aria-label="Key figures">
+      <div class="kpi"><div class="l">Simple chat prompt, all-in</div><div class="v">1.9 <small>mL</small></div><div class="s">Conservative. 0.5 mL central. On-site alone is 0.26 mL as Google measures it.<sup><a href="#s1">1</a></sup></div></div>
+      <div class="kpi"><div class="l">Long reasoning call, all-in</div><div class="v">56 <small>mL</small></div><div class="s">Conservative; 10 mL central. Nine of these equal a 500 mL bottle.</div></div>
+      <div class="kpi"><div class="l">US data centers, 2023, on-site</div><div class="v">17 <small>bn gal</small></div><div class="s">Consumed by cooling. Includes training runs.<sup><a href="#s4">4</a></sup></div></div>
+      <div class="kpi"><div class="l">Add the power plants</div><div class="v">101–228 <small>bn gal</small></div><div class="s">Indirect is 83–92% of the total, whichever factor you accept.</div></div>
+      <div class="kpi"><div class="l">Share of US freshwater consumption</div><div class="v">0.3–0.7<small>%</small></div><div class="s">The honest denominator. It is 0.1–0.2% against withdrawals.<sup><a href="#s9">9</a></sup></div></div>
+      <div class="kpi"><div class="l">New US data centers in high water stress</div><div class="v">≈⅔</div><div class="s">Built or in development since 2022.<sup><a href="#s20">20</a></sup></div></div>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections"><div class="wrap"><ol>
+  <li><a href="#prompt">One prompt</a></li>
+  <li><a href="#people">Three users</a></li>
+  <li><a href="#power">Electricity</a></li>
+  <li><a href="#training">Training</a></li>
+  <li><a href="#pipes">Where it goes</a></li>
+  <li><a href="#budget">National budget</a></li>
+  <li><a href="#where">Where it bites</a></li>
+  <li><a href="#elsewhere">Built elsewhere?</a></li>
+  <li><a href="#next">Next five years</a></li>
+  <li><a href="#verdict">Verdict</a></li>
+  <li><a href="#audit">Methods</a></li>
+  <li><a href="#scoring">Site scoring</a></li>
+  <li><a href="#sources">Sources</a></li>
+</ol></div></nav>
+
+<main class="wrap"><!-- ============ 1. ONE PROMPT ============ -->
+<section class="sec" id="prompt">
+  <div class="sec-head">
+    <div class="eyebrow">Per prompt</div>
+    <h2>Why the answer runs from five drops to a bottle</h2>
+    <p class="lead">Every published figure is defensible inside its own boundary. They differ hundredfold because of three choices: whether power-plant water counts, which model and prompt length, and which year's hardware.</p>
+  </div>
+
+  <div class="prose">
+    <p>Start with the thing everyone argues about. You type a question, a model answers, and somewhere a cooling tower evaporates some water. How much?</p>
+    <p>The published answers span a hundredfold, and almost all of the spread comes from one decision: <strong>whether you count only the water evaporated at the data center, or also the water evaporated at the power station that made its electricity.</strong> Those are two separate pipes, and the second one turns out to be four to ten times bigger than the first. The <a href="#pipes">system-level section</a> takes that apart properly. For now it is enough to know that an on-site-only figure and an all-in figure are both honest and are not the same number.</p>
+    <p>Two settings run through this page. The <strong>central case</strong> uses Google's measured energy and mid-range water factors. The <strong>conservative case</strong> uses higher energy, the least efficient major fleet's cooling, and the highest published grid factor; every personal figure here quotes that one. Neither is a best case, and the <a href="#audit">methods section</a> has the arithmetic.</p>
+  </div>
+
+  <div class="fork">
+    <div><div class="eyebrow">Central case, simple chat prompt</div><div class="v">0.50 <small>mL</small></div><div class="note">0.24 Wh measured. On-site 0.07, power plant 0.43. This is the honest typical number for a short question to a standard model.</div></div>
+    <div><div class="eyebrow">Conservative case, simple chat prompt</div><div class="v">1.90 <small>mL</small></div><div class="note">0.34 Wh, Google's cooling, worst grid factor. On-site 0.36, power plant 1.54. Used for every personal figure in this report.</div></div>
+  </div>
+
+  <figure class="chart" id="c1">
+    <div class="t">Water per AI interaction, by what the estimate counts</div>
+    <div class="st">Millilitres, log scale. Dot is the point estimate or midpoint; bar is the published or derived range. Dashed line is a 500 mL bottle.</div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>On-site cooling only</span><span><i style="background:var(--s2)"></i>On-site + power-plant water</span><span><i style="background:var(--s3)"></i>Full lifecycle, incl. training and hardware</span><span><i class="dash"></i>Reference</span></div>
+    <div class="plot"></div>
+    <figcaption>Derived rows use 0.24–0.34 Wh for simple chat and 5–10 Wh for a long reasoning or agentic call, with on-site at WUE 0.3–1.15 and generation at 1.8–4.52 L/kWh. Reasoning-call energy is anchored on Jegham et al. v6, where o3 at a long prompt is 12.2 Wh and Claude 3.7 Sonnet is 5.7 Wh.<sup><a href="#s5">5</a></sup></figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="c1"></div></details>
+
+  <div class="callout">
+    <div class="eyebrow">What moved the number</div>
+    <p><strong>Energy per prompt fell roughly tenfold</strong> between the 2023 literature, which assumed 4 Wh, and 2025 production measurement at 0.24 to 0.34 Wh. Google reports a 33-fold drop in energy per median prompt in the twelve months to May 2025 alone.<sup><a href="#s1">1</a></sup> <strong>Reasoning and agentic modes pull it back up 3 to 13 times</strong> because they emit ten to fifteen times the tokens, and long contexts add more: Epoch puts a 100,000-token input at about 40 Wh.<sup><a href="#s2">2</a></sup></p>
+    <p><strong>Water scales linearly with energy in every published method.</strong> So the water question is the energy question multiplied by two factors: the site's cooling efficiency and the grid's water intensity. That is why the electricity section below matters as much as this one.</p>
+  </div>
+  <div class="callout orange">
+    <div class="eyebrow">The bottle, settled</div>
+    <p>The claim that one prompt drinks a bottle of water comes from a 2023 UC Riverside paper, which actually said one 500 mL bottle per <em>10 to 50</em> medium responses, on 2021 hardware that used roughly ten times the energy per answer that measured 2025 systems do. For ordinary chat the viral version is off by a factor of about 260.</p>
+    <p>But run the conservative numbers on a long reasoning or agentic call and it lands at 56 mL, so <strong>nine of those empty a bottle</strong> — inside the original paper's range. The famous claim is badly wrong about the typical case and accidentally close on the heavy tail, which is the single most useful thing to know before reading the rest of this page.</p>
+  </div>
+</section>
+
+<!-- ============ 2. THREE USERS ============ -->
+<section class="sec" id="people">
+  <div class="sec-head">
+    <div class="eyebrow">Three users</div>
+    <h2>What one person's AI habit actually costs</h2>
+    <p class="lead">Three archetypes, built from realistic usage patterns rather than round numbers. Every figure is the conservative case: high energy, worst grid factor, least efficient major fleet's cooling, inference only.</p>
+  </div>
+
+  <div class="people">
+    <div class="person">
+      <div class="who"><span class="nm">Dana</span><span class="tag">Light</span></div>
+      <p class="bio">A project manager who reaches for a chatbot a few times a day. Looks up a definition, rewrites an awkward email, settles an argument about a film. Never thinks about which model she is using.</p>
+      <div class="usage">8 prompts/day<br>2,920 per year<br>standard chat model, short</div>
+      <div class="figs">
+        <div class="fig"><div class="fl">Water</div><div class="fv">1.5 <small>gal/yr</small></div><div class="fn">Less than one toilet flush. 2.0 gal with training.</div></div>
+        <div class="fig"><div class="fl">Electricity</div><div class="fv">1.0 <small>kWh/yr</small></div><div class="fn">A third of what her phone charger uses. 16 cents.</div></div>
+      </div>
+    </div>
+    <div class="person">
+      <div class="who"><span class="nm">Marcus</span><span class="tag">Moderate</span></div>
+      <p class="bio">An analyst who works alongside AI all day. Drafting, summarising, checking formulas, and about ten times a day he hands it something hard enough to need a reasoning model.</p>
+      <div class="usage">50 simple + 10 reasoning/day<br>21,900 per year<br>mixed standard and reasoning</div>
+      <div class="figs">
+        <div class="fig"><div class="fl">Water</div><div class="fv">63 <small>gal/yr</small></div><div class="fn">Under four showers. 85 gal with training.</div></div>
+        <div class="fig"><div class="fl">Electricity</div><div class="fv">43 <small>kWh/yr</small></div><div class="fn">A tenth of a refrigerator. About $7.</div></div>
+      </div>
+    </div>
+    <div class="person">
+      <div class="who"><span class="nm">Priya</span><span class="tag">Heavy</span></div>
+      <p class="bio">A staff engineer running coding agents most of the working day. Each task she delegates fans out into dozens of model calls against large repositories, so her real consumption is agent calls, not questions typed.</p>
+      <div class="usage">200 simple + 500 agent calls/day<br>255,500 per year<br>long context, reasoning-heavy</div>
+      <div class="figs">
+        <div class="fig"><div class="fl">Water</div><div class="fv">2,700 <small>gal/yr</small></div><div class="fn">160 showers. 3,700 gal with training.</div></div>
+        <div class="fig"><div class="fl">Electricity</div><div class="fv">1,850 <small>kWh/yr</small></div><div class="fn">An EV driven 6,500 miles. About $296.</div></div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Simple prompt 0.34 Wh and 1.90 mL; agent call 10 Wh and 55.8 mL, anchored on Jegham et al. v6 where a long o3 prompt is 12.2 Wh. Central-case figures, using measured 0.24 Wh and the thermal-only water factor, are about a fifth of these: Dana 0.4 gal, Marcus 12 gal, Priya 510 gal.</p>
+
+  <figure class="chart" id="c4">
+    <div class="t">A year of AI water, per person, against household references</div>
+    <div class="st">Gallons per year, log scale. Solid dot is the conservative case; the bar runs from the central case to conservative. Dashed lines are everyday references.</div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Dana, light</span><span><i style="background:var(--s2)"></i>Marcus, moderate</span><span><i style="background:var(--s3)"></i>Priya, heavy</span><span><i class="dash"></i>Reference</span></div>
+    <div class="plot"></div>
+    <figcaption>Shower is 8 minutes at 2.1 gallons per minute. Annual indoor home water is 82 gallons per person per day (EPA WaterSense).<sup><a href="#s13">13</a></sup> The burger reference is blue water only, 18.5 gal, because the widely quoted 660-gallon figure is roughly 95 percent rainfall on pasture and does not compete with a cooling tower.</figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="c4"></div></details>
+
+  <div class="prose">
+    <p>Read Priya's row honestly, because it is the one that carries the argument. At the conservative setting her year of agentic coding consumes about <strong>2,700 gallons, which is 160 showers, 44 percent of a year of daily showering, or 9 percent of her household's indoor water</strong>. Add amortised training and it is 3,700 gallons. That is not nothing. It is also roughly what four and a half quarter-pound burgers cost in total water footprint, and less than one summer week of watering a small lawn.</p>
+    <p>Dana's and Marcus's rows carry no argument at all. Dana's entire year of AI is less water than a single flush of an old toilet. Marcus's is under four showers. For anyone whose use looks like theirs, which is most people, the water question is genuinely settled and the honest answer is that it does not register.</p>
+  </div>
+
+  <div class="callout">
+    <div class="eyebrow">Does using less actually do anything?</div>
+    <p>Not measurably, and this is the one place both sides of the public argument quietly agree. Training runs, provisioned idle capacity and the build-out itself are fixed against any individual's demand; a prompt you do not send does not idle a cooling tower. The levers that do change your own number are <strong>model choice</strong>, where a reasoning model costs three to thirteen times a standard one per call, and <strong>agent discipline</strong>, since one delegated task can be fifty model calls. Provider choice matters faintly: AWS and Meta run fleets at 0.12 to 0.2 litres per kWh on-site against Google's 1.15.</p>
+  </div>
+</section>
+
+<!-- ============ 3. ELECTRICITY ============ -->
+<section class="sec" id="power">
+  <div class="sec-head">
+    <div class="eyebrow">Electricity</div>
+    <h2>The electricity is the bigger, more legible story</h2>
+    <p class="lead">Water is downstream of energy in every method here, and energy is the thing a person can actually compare to their own life. On that axis the same three users land in very different places.</p>
+  </div>
+
+  <figure class="chart" id="c5">
+    <div class="t">A year of AI electricity against familiar annual loads</div>
+    <div class="st">Kilowatt-hours per year, log scale. Household appliance figures are typical US values.</div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>AI use, conservative case</span><span><i style="background:var(--de)"></i>Everyday loads</span></div>
+    <div class="plot"></div>
+    <figcaption>US household average 10,500 kWh/yr and 2.51 people per household give a per-person share near 4,200 kWh. EV assumes 12,000 miles at 3.5 miles per kWh. Appliance figures are typical rather than measured and vary two-fold with climate and vintage.</figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="c5"></div></details>
+
+  <div class="prose">
+    <p>The ladder separates the three users far more sharply than the water chart does, because electricity is where the cost originates. <strong>Dana's whole year of AI is one kilowatt-hour</strong>, less than her phone charger and about thirteen hours of a single LED bulb. <strong>Marcus at 43 kWh</strong> is a tenth of a refrigerator, or roughly what a laptop draws in ten weeks. Neither is worth a second thought.</p>
+    <p><strong>Priya at 1,850 kWh is a different kind of number.</strong> It is 18 percent of an average US household's annual electricity, 44 percent of one person's share of it, comparable to running a central air conditioner for a season, and more than a clothes dryer and refrigerator combined. With training amortised it is roughly 2,500 kWh, which passes an electric water heater. At 16 cents a kilowatt-hour the electricity behind her agent usage costs somebody about $296 a year, which is a useful reminder that this is a real industrial input and not a free good.</p>
+    <p>The honest summary is that <strong>heavy agentic AI use is an appliance-scale personal energy decision, and light chat use is not a decision at all</strong>. Anyone worried about their own footprint should be looking at whether they delegate work to reasoning agents by the hundred, not at whether they asked a chatbot a question this morning.</p>
+  </div>
+
+  <div class="callout green">
+    <div class="eyebrow">The conversion that links the two halves of this report</div>
+    <p>Every kilowatt-hour carries 1.8 to 4.52 litres of water with it, depending on what generated it. That single factor is why the water argument and the clean-generation argument are the same argument. Priya's 1,850 kWh on a coal-and-nuclear grid carries about 2,200 gallons of power-plant water; the same 1,850 kWh from wind carries essentially none. She cannot choose her grid. A data-center developer choosing a site and a power contract can, and that choice moves more water than every cooling-tower upgrade in the industry.</p>
+  </div>
+</section>
+
+<!-- ============ 4. TRAINING ============ -->
+<section class="sec" id="training">
+  <div class="sec-head">
+    <div class="eyebrow">Training</div>
+    <h2>Training is in the national numbers and out of the personal ones</h2>
+    <p class="lead">Every per-prompt figure published by a vendor excludes model training. Every national and regional figure includes it automatically. Neither is an error, but mixing them is, and the reason training matters regionally is that it lands on one utility at one time.</p>
+  </div>
+
+  <div class="prose">
+    <h3>Where it is already counted</h3>
+    <p><strong>National and regional totals include training with no adjustment needed.</strong> LBNL's 176 TWh and 17.4 billion gallons are measured at the meter and the water main of US data centers. Training runs happen inside those buildings, so their electricity and cooling water are already in the total. The same is true of every local figure in this report: when Google's Council Bluffs campus consumed 1.3 billion gallons in 2025, that number does not care which racks were training and which were serving.</p>
+    <p><strong>Per-prompt figures exclude it explicitly.</strong> Google's paper scopes out "training and model development" by name, as do Microsoft's and Altman's. So does every personal estimate in the next section, unless marked otherwise.</p>
+
+    <h3>What a training run actually costs</h3>
+  </div>
+
+  <div class="tscroll"><table>
+    <thead><tr><th>Training run</th><th class="num">Electricity</th><th class="num">Water, all-in</th><th>Basis and confidence</th></tr></thead>
+    <tbody>
+      <tr><td>GPT-3, 2020</td><td class="num">1,287 MWh</td><td class="num">1.4 M gal</td><td>Patterson et al. energy; Ren's 700,000 L on-site plus 4.7 M L off-site. High confidence for the estimate.</td></tr>
+      <tr><td>Mistral Large 2, to Jan 2025</td><td class="num">not disclosed</td><td class="num">74 M gal</td><td>281,000 m³, the company's own ISO 14040 lifecycle assessment. The only vendor-published training water figure in existence.</td></tr>
+      <tr><td>GPT-4 class, 2023</td><td class="num">≈50 GWh</td><td class="num">≈60 M gal</td><td>Third-party estimate; water derived at 4.52 L/kWh. Medium-low confidence, no vendor disclosure.</td></tr>
+      <tr><td>Frontier run, 2026</td><td class="num">100–500 GWh</td><td class="num">120–600 M gal</td><td>Extrapolated from cluster sizes and run durations. Low confidence; no operator publishes this.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="prose">
+    <p>Put that against the fleet and it is not the main event. Inference is generally put at 80 to 90 percent of AI compute and rising, so training is on the order of a tenth to a fifth of AI's total energy and water.<sup><a href="#s7">7</a></sup> Even a 500 GWh frontier run is 0.3 percent of one year of US data-center electricity.</p>
+
+    <h3>How to think about it for your own use</h3>
+    <p>There are two defensible answers and they differ by a lot.</p>
+  </div>
+
+  <div class="fork">
+    <div><div class="eyebrow">Marginal: what your next prompt causes</div><div class="v">+0<small> mL</small></div><div class="note">The training run already happened. It is a sunk cost that does not change with your behaviour, so the water attributable to one more prompt is the inference water and nothing else. This is the right frame for "should I use AI less."</div></div>
+    <div><div class="eyebrow">Average: your share of the whole system</div><div class="v">+25–50<small>%</small></div><div class="note">A frontier model at 50 to 100 GWh serving 300 to 500 billion prompts over its life amortises to 0.1 to 0.2 Wh per prompt, against 0.24 to 0.34 Wh of inference. This is the right frame for "what does my AI use cost the world."</div></div>
+  </div>
+
+  <div class="prose">
+    <p>This report uses <strong>plus 35 percent</strong> as the amortised training adder where a with-training figure is shown, sitting between Masley's 16 percent estimate and the upper end of the arithmetic above. Applied to the heaviest user in the next section, training adds about 950 gallons and 650 kWh a year, which is material in the sense that it is real and immaterial in the sense that abstaining would not have prevented a single litre of it.</p>
+  </div>
+
+  <div class="callout orange">
+    <div class="eyebrow">Why training matters regionally even though it is small nationally</div>
+    <p>Inference load is smooth, distributed and follows users. <strong>A training run is a single lump of demand in one building for weeks or months.</strong> In July 2022, the month before GPT-4 finished training, Microsoft's West Des Moines cluster drew 11.5 million gallons, about 6 percent of the district's water for that month, from a utility that also supplies household drinking water.<sup><a href="#s27">27</a></sup> No annual average would have shown that. It is the clearest illustration in the record that the unit of harm here is a utility in a month, not a country in a year, and it is the reason a state water plan that has no data-center category at all is a real planning failure rather than a rounding error.</p>
+  </div>
+</section>
+
+<!-- ============ 5. TWO PIPES ============ -->
+<section class="sec" id="pipes">
+  <div class="sec-head">
+    <div class="eyebrow">Where the water goes</div>
+    <h2>Two pipes, and the second one is bigger</h2>
+    <p class="lead">A data center consumes water in two places: its own cooling towers, and the cooling towers at the power plants feeding it. Every study that counts both puts the power-plant share at 83 to 92 percent.</p>
+  </div>
+
+  <div class="diagram" aria-label="Diagram of direct and indirect water pathways">
+    <svg viewBox="0 0 900 230" role="img">
+      <rect class="box" x="20" y="60" width="180" height="110" rx="2"/>
+      <text x="110" y="86" text-anchor="middle" font-weight="700">Data center</text>
+      <text class="m" x="110" y="106" text-anchor="middle">176 TWh in 2023</text>
+      <text class="m" x="110" y="122" text-anchor="middle">4.4% of US electricity</text>
+      <text class="m" x="110" y="152" text-anchor="middle">incl. training runs</text>
+      <path class="arrow" d="M200 90 L330 90" marker-end="url(#ah)"/>
+      <rect class="box" x="335" y="40" width="200" height="100" rx="2"/>
+      <rect x="335" y="40" width="6" height="100" fill="var(--s1)"/>
+      <text x="435" y="66" text-anchor="middle" font-weight="700">Direct: on-site cooling</text>
+      <text class="m" x="435" y="86" text-anchor="middle">tower evaporation,</text>
+      <text class="m" x="435" y="102" text-anchor="middle">adiabatic pads, humidifiers</text>
+      <text class="m" x="435" y="126" text-anchor="middle">17 bn gal / yr</text>
+      <path class="arrow" d="M110 170 L110 200 L330 200" marker-end="url(#ah)"/>
+      <text class="m" x="120" y="192">electricity purchased</text>
+      <rect class="box" x="335" y="160" width="200" height="60" rx="2"/>
+      <rect x="335" y="160" width="6" height="60" fill="var(--s2)"/>
+      <text x="435" y="185" text-anchor="middle" font-weight="700">Power plants</text>
+      <text class="m" x="435" y="204" text-anchor="middle">steam-cycle cooling</text>
+      <path class="arrow" d="M535 190 L640 190" marker-end="url(#ah)"/>
+      <rect class="box" x="645" y="150" width="235" height="80" rx="2"/>
+      <rect x="645" y="150" width="6" height="80" fill="var(--s2)"/>
+      <text x="762" y="174" text-anchor="middle" font-weight="700">Indirect: generation water</text>
+      <text class="m" x="762" y="194" text-anchor="middle">1.8 L/kWh thermal only</text>
+      <text class="m" x="762" y="210" text-anchor="middle">4.52 L/kWh blended, incl. hydro</text>
+      <path class="arrow" d="M535 90 L640 90" marker-end="url(#ah)"/>
+      <rect class="box" x="645" y="40" width="235" height="100" rx="2"/>
+      <rect x="645" y="40" width="6" height="100" fill="var(--de)"/>
+      <text x="762" y="66" text-anchor="middle" font-weight="700">Counted nowhere above</text>
+      <text class="m" x="762" y="86" text-anchor="middle">chip fabs: TSMC Arizona alone</text>
+      <text class="m" x="762" y="102" text-anchor="middle">is 4.75M gal/day today,</text>
+      <text class="m" x="762" y="118" text-anchor="middle">17M at full build</text>
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="var(--axis)"/></marker></defs>
+    </svg>
+  </div>
+
+  <figure class="chart" id="c2">
+    <div class="t">US data-center water consumption, 2023, direct versus indirect</div>
+    <div class="st">Billion gallons per year, consumptive. Same 17.4 bn gal on-site in both; the indirect bar depends on which grid factor is applied to 176 TWh.</div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>On-site cooling</span><span><i style="background:var(--s2)"></i>Power-plant water</span></div>
+    <div class="plot"></div>
+    <figcaption>On-site from LBNL's December 2024 report to Congress (66 bn L), secondary-sourced because the primary PDF was inaccessible; two independent write-ups agree.<sup><a href="#s4">4</a></sup> Both bars already include water used by model training, which happens inside the same facilities.</figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="c2"></div></details>
+
+  <div class="prose">
+    <p>The gap between those two bars is the largest single disagreement in this literature, and the audit found that it is <strong>almost entirely one accounting choice about hydropower</strong>. The lower factor counts cooling-tower evaporation at thermal plants, about 0.47 gallons per kWh.<sup><a href="#s8">8</a></sup> The higher one is a blended national average that folds in evaporation from hydroelectric reservoirs, charged to power in full. A US grid average built from the 2023 generation mix without hydro computes to roughly 1.0 to 1.25 litres per kWh; adding gross reservoir evaporation at the high end of the literature reproduces about 5; using the net, counterfactual-adjusted hydro figure instead gives about 1.4 to 1.6. The <a href="#next">generation section</a> takes this apart, including why the water flowing through a dam's turbines is correctly excluded, why the water evaporating off the reservoir behind it is real but contested, and why NREL itself declined to chart hydropower next to thermal plants. This report uses the higher figure wherever a single value is needed, on the brief to show a reasonable worst case, and labels it as a bound rather than a measurement.</p>
+    <p><strong>Withdrawal is not consumption.</strong> US thermal plants withdraw about 103 billion gallons a day and consume 2.7, because once-through cooling returns the water a few degrees warmer. Evaporative data-center cooling consumes most of what it withdraws. Gallon for gallon, data-center water behaves more like irrigation than like a power plant's intake, which is why "power is 41 percent of withdrawals" is the wrong comparator and why the national share below is computed against consumption.</p>
+  </div>
+
+  <h3 style="margin-top:28px">Which pipe is bigger depends on the cooling</h3>
+  <div class="prose">
+    <p>The 83-to-92 percent figure above is a national average, and averages hide the thing that actually decides a given facility's footprint. <strong>On-site cooling is the single widest-spread variable in this entire subject — about 220-fold from worst to best</strong> — and once you know where a campus sits on that spread, the direct-versus-indirect balance can invert completely.</p>
+    <p>Water usage effectiveness, the industry metric, is litres of site water per kWh of IT energy. Here is what the range means for a 100 MW campus running 745 GWh of IT load a year.</p>
+  </div>
+
+  <figure class="chart" id="ccool">
+    <div class="t">On-site water by cooling technology</div>
+    <div class="st">Million gallons per year for a 100 MW campus. Disclosed fleet averages shown against the technology extremes they sit between.</div>
+    <div class="legend"><span><i style="background:var(--s2)"></i>Evaporative</span><span><i style="background:var(--s1)"></i>Disclosed fleet average</span><span><i style="background:var(--s3)"></i>Dry or near-dry</span></div>
+    <div class="plot"></div>
+    <figcaption>An open cooling tower boils water away deliberately, because evaporation removes roughly 1,000 BTU per pound and is thermodynamically excellent at dumping heat. A dry cooler is a radiator and evaporates nothing, leaving only humidification. Adiabatic systems run dry most of the year and spray only on hot days, which is why their annual average collapses even though their peak-day draw stays high. <strong>Direct-to-chip liquid cooling tells you nothing by itself</strong> — a sealed rack loop can still sit on an evaporative tower, and what matters is the heat-rejection stage at the building.</figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="ccool"></div></details>
+
+  <div class="callout orange">
+    <div class="eyebrow">What the disclosed fleet averages imply</div>
+    <p>Google reports a fleet water usage effectiveness of 1.15, against 0.27 for Microsoft, 0.19 for Meta and 0.12 for AWS. Since a dry cooler sits near 0.03 and an evaporative tower near 1.8, those averages are only reachable with a particular mix. Solving the blend puts <strong>roughly 55 to 63 percent of Google's IT load on evaporative cooling, against something like 4 to 14 percent for the other three.</strong></p>
+    <p>That is a strategic choice rather than an oversight. Google runs the best power usage effectiveness in the industry at 1.09, and evaporative cooling is how you get there — it is the most energy-efficient way to reject heat. <strong>Google traded water for electricity, and its competitors traded the other way.</strong> The figures are derived from disclosed averages assuming a two-way mix, so treat them as upper bounds on evaporative share; real fleets include adiabatic hybrids in between.</p>
+  </div>
+
+  <div class="prose">
+    <p>Now combine cooling choice with the grid serving the campus. The claim that generation dominates holds firmly in some combinations and reverses entirely in others.</p>
+  </div>
+
+  <figure class="chart" id="csplit">
+    <div class="t">Total water for the same campus, by cooling and by grid</div>
+    <div class="st">Million gallons per year, on-site cooling plus the water consumed generating the electricity. Sorted worst to best.</div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>On-site cooling</span><span><i style="background:var(--s2)"></i>Power generation</span></div>
+    <div class="plot"></div>
+    <figcaption>Grid factors: renewables 5 gal/MWh, gas combined cycle with a tower 198, US thermal average 476, and the blended national figure including hydropower allocation 1,194. Dry cooling is modelled at 13 percent higher facility energy, which is the real electricity penalty it carries.</figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="csplit"></div></details>
+
+  <div class="callout">
+    <div class="eyebrow">Three things that fall out of this</div>
+    <p><strong>The generation-dominates claim is conditional, not universal.</strong> For a dry-cooled campus on a thermal grid it is overwhelming, at 99 percent. For an evaporative campus on a clean grid it inverts to 1 percent. The national average lands where it does because most capacity is moderately efficient cooling on a thermal grid, not because the physics forces it.</p>
+    <p><strong>Cooling choice can outweigh generation choice.</strong> An evaporative campus running on renewables consumes about 359 million gallons a year. A dry-cooled campus running on gas combined cycle consumes about 198 million. <strong>The "green-powered" facility uses nearly twice the water of the gas-powered one</strong>, because it is boiling its own water away on site regardless of what charges the meter.</p>
+    <p><strong>Dry cooling wins on total water almost unconditionally.</strong> It costs about 13 percent more electricity, which on this campus brings back 22 million gallons on gas and 77 million on coal or nuclear — against 348 million saved on site. Break-even would require a grid at roughly 3,100 gallons per MWh, and the worst real thermal plant is about 690. The familiar objection that zero-water cooling just moves the problem upstream is half right: it does move some water, but a small fraction of what it saves.</p>
+  </div>
+</section>
+
+<!-- ============ 6. NATIONAL ============ -->
+<section class="sec" id="budget">
+  <div class="sec-head">
+    <div class="eyebrow">Against the national budget</div>
+    <h2>Under one percent nationally, on the honest denominator</h2>
+    <p class="lead">The commonly quoted "0.1 percent" divides data-center consumption by national withdrawal. Matching consumption to consumption roughly triples it, to between a third and seven tenths of one percent. Still small. Three to four times less small than usually claimed.</p>
+  </div>
+
+  <div class="fork">
+    <div><div class="eyebrow">Against withdrawals, the usual framing</div><div class="v">0.10–0.22<small>%</small></div><div class="note">101–228 bn gal against 102,600 bn gal/yr of US freshwater withdrawal. Flattering, because most withdrawn water is returned.</div></div>
+    <div><div class="eyebrow">Against consumption, the fair framing</div><div class="v">0.32–0.72<small>%</small></div><div class="note">Against roughly 31,500 bn gal/yr actually consumed nationally: irrigation 26,700, thermal 985, plus municipal outdoor and industrial. Derived, not a published USGS total.</div></div>
+  </div>
+
+  <figure class="chart" id="c3">
+    <div class="t">Annual water, US sectors and reference points</div>
+    <div class="st">Billion gallons per year, log scale. Consumption where available, withdrawal where marked. Sector figures are USGS 2015, the most recent complete national accounting.</div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Data centers</span><span><i style="background:var(--de)"></i>Everything else</span></div>
+    <div class="plot"></div>
+    <figcaption>Golf is one average 18-hole course over a 200-day season, not a national total, which the USGA does not publish. Bitcoin is the US share of de Vries's global estimate on the same on-site-plus-generation method.<sup><a href="#s11">11</a></sup> USGS has published no comprehensive national consumption total since 1995; the consumption denominator above is derived from sector ratios.</figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="c3"></div></details>
+
+  <div class="two">
+    <div class="callout">
+      <div class="eyebrow">In people</div>
+      <p>At the EPA's 82 gallons per person per day of indoor home use, on-site data-center water equals the indoor water of <strong>about 580,000 Americans</strong>. Counting power-plant water: <strong>3.4 to 7.6 million</strong>, or 1 to 2.3 percent of the population. US Bitcoin mining, on the same method, is 25 to 32 billion gallons, about one and a half times the data-center on-site figure.</p>
+    </div>
+    <div class="callout orange">
+      <div class="eyebrow">Why the national number misleads both sides</div>
+      <p>"Under one percent" is true and beside the point. Water does not move between basins. A 100 MW evaporative-cooled campus draws 1 to 5 million gallons a day from one utility in one watershed, peaking on the hottest days, when that watershed is also under stress. The national total answers "is AI draining America." It does not answer "should Tucson host this."</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. WHERE IT BITES ============ -->
+<section class="sec" id="where">
+  <div class="sec-head">
+    <div class="eyebrow">Regional</div>
+    <h2>Where it bites: a few utilities carry the load</h2>
+    <p class="lead">Nationally this is under one percent of freshwater consumption. In The Dalles, Oregon, one company takes 29 to 40 percent of the city's water. In Newton County, Georgia, one campus is 10 percent of county supply and neighbours' wells have run dry. Whether "unsustainable" is fair depends entirely on which of those two facts you are looking at.</p>
+  </div>
+
+  <figure class="chart" id="cmap">
+    <div class="t">Where the water stress is, and where the data centers are</div>
+    <div class="st">Each square is a state, arranged roughly by geography. Shading is baseline water stress. Orange circles are major data-center markets, sized by reported capacity.</div>
+    <div class="legend" id="maplegend"></div>
+    <div class="plot"></div>
+    <figcaption>Stress classes are state-level generalisations of WRI Aqueduct-style baseline water stress, which is the ratio of total withdrawals to renewable supply. <strong>Stress is properly a basin property, not a state one</strong>, and several states split hard: West Texas sits on the declining Ogallala while the Gulf Coast does not, and eastern Oregon and Washington are arid while the west sides are wet. Circles mix operating and under-construction capacity as each market reported it, so treat them as market size rather than a clean like-for-like. Hover any state for detail.</figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="cmap"></div></details>
+
+  <div class="callout">
+    <div class="eyebrow">What the map shows that the statistics do not</div>
+    <p><strong>The largest existing cluster in the country is in a low-stress basin.</strong> Northern Virginia at roughly 4,500 MW is the biggest data-center concentration on earth, and it draws from the Potomac. Atlanta, Columbus and Chicago, the next three, are also in comparatively wet places. The genuinely stressed markets — Phoenix, Silicon Valley, Las Vegas, Salt Lake City — are individually smaller.</p>
+    <p>That is exactly why the two-thirds statistic and the capacity-weighted picture disagree, and why Virginia being ranked first for "acute water stress" facilities sits so awkwardly against a large perennial river. The concentration is real, the stress is real, and they only partly overlap. Where they overlap hardest is not the big legacy hubs but the new frontier: West Texas, southern New Mexico, Utah.</p>
+  </div>
+
+  <figure class="chart" id="c6">
+    <div class="t">Data centers' share of local water supply, disclosed cases</div>
+    <div class="st">Percent of the utility's or region's total water. Bars show the published range where sources differ. The national all-in share is the grey reference.</div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Local share</span><span><i style="background:var(--de)"></i>US national, all-in, consumption basis</span></div>
+    <div class="plot"></div>
+    <figcaption>The Dalles disclosed only after a 13-month public-records lawsuit the city fought with Google funding its defence.<sup><a href="#s17">17</a></sup> West Des Moines is a single peak month during GPT-4 training, the clearest recorded case of a training run surfacing in a municipal water system. Texas 2030 is one modelled scenario within a 29–161 bn gal/yr range.<sup><a href="#s18">18</a></sup></figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="c6"></div></details>
+
+  <h3 style="margin-top:28px">The "two-thirds in water-stressed areas" claim, decoded</h3>
+  <div class="prose">
+    <p>This is the statistic that carries the entire national argument, and it is narrower than almost every citation of it implies. Bloomberg's 2025 analysis found that roughly two thirds of US data centers <strong>built or in development since 2022</strong> sit in water-stressed areas. Three qualifiers matter. It covers <strong>new builds only</strong>, not the installed fleet. It counts <strong>facilities, not megawatts</strong>. And it uses basin-level water stress, which measures how heavily a whole river basin is already allocated across farms, cities and industry, not how much any one data center draws.</p>
+    <p>Treating it as a statement about the existing fleet is a category error, and it happens constantly. The figures below all get quoted in the same conversation as though they were comparable. They measure six different things.</p>
+  </div>
+
+  <figure class="chart" id="c9">
+    <div class="t">Six water-stress statistics that are not measuring the same thing</div>
+    <div class="st">Percent. Each bar answers a different question about a different population, on a different definition of stress.</div>
+    <div class="legend"><span><i style="background:var(--s2)"></i>New builds / pipeline</span><span><i style="background:var(--s1)"></i>Existing stock</span><span><i style="background:var(--s3)"></i>Power plants, not data centers</span></div>
+    <div class="plot"></div>
+    <figcaption>Hover any bar for what it actually measures. The widely repeated "MSCI 52 percent" figure is <strong>Verisk Maplecroft's</strong>, not MSCI's; MSCI's own number is 25 percent on a different metric entirely, and this page cited the wrong attribution until this revision.<sup><a href="#s30">30</a></sup></figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="c9"></div></details>
+
+  <div class="callout orange">
+    <div class="eyebrow">The honest answer to "what share of built data centers are in water-stressed areas"</div>
+    <p><strong>Nobody knows, and no current figure exists.</strong> There is no published, transparent, US-only, capacity-weighted number for the existing fleet. The only peer-reviewed US stock study is Siddik, Shehabi and Marston in 2021, which found about a fifth of direct water footprint and about half of power-linked exposure in stressed watersheds — on <strong>2018 data</strong>, before the AI build-out began. The commercial datasets that could answer it properly are proprietary.</p>
+    <p>What that study did find, and what survives, is sharper than a headline share: <strong>western basins host about 20 percent of servers but account for roughly 70 percent of the scarcity-weighted impact.</strong> The distribution matters more than the count, which is the same conclusion this page reaches from the local cases.</p>
+  </div>
+
+  <h3 style="margin-top:28px">Where the next five years are going</h3>
+  <div class="prose">
+    <p>The hopeful story would be that the industry is migrating to wet regions. That is not what the pipeline shows. Growth is <strong>diversifying</strong> into the Midwest, Ohio Valley and Gulf Coast while continuing to expand hard in the driest basins in the country. West Texas, sitting on the declining Ogallala and Edwards-Trinity aquifers, is the single largest concentration of new hyperscale capacity in the United States and is projected to be a top-five market by 2028. Utah has one of the ten largest state pipelines despite being among the most water-stressed states. Arizona keeps adding capacity in a metro where some areas can no longer get a potable-water commitment at all.</p>
+    <p>Because no published figure is capacity-weighted, the chart below is my own derivation from state pipeline totals, and it comes with a wide honest band rather than a point estimate.</p>
+  </div>
+
+  <figure class="chart" id="c10">
+    <div class="t">Announced data-center pipeline by state, coloured by water stress</div>
+    <div class="st">Gigawatts of announced capacity, top eleven states. Announcements, not construction — 30 to 75 percent of this will not be built as described.</div>
+    <div class="legend"><span><i style="background:var(--s2)"></i>High or extreme stress</span><span><i style="background:var(--s1)"></i>Mixed or contested</span><span><i style="background:var(--s3)"></i>Low stress</span></div>
+    <div class="plot"></div>
+    <figcaption>Pipeline figures blend trackers that disagree by two to three times on totals; use for ranking, not modelling. Texas is shown as mixed because West Texas is high-stress and the Gulf Coast is not, and that single classification choice swings the result more than everything else combined.</figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="c10"></div></details>
+
+  <div class="fork">
+    <div><div class="eyebrow">Capacity-weighted share in high-stress states</div><div class="v">18–55<small>%</small></div><div class="note">Of 227 GW across the top eleven states. The floor counts only Utah, New Mexico and Arizona; the ceiling counts all of Texas. Half of Texas gives 36 percent. Derived here because no analyst publishes the megawatt-weighted version.</div></div>
+    <div><div class="eyebrow">Why facility counts understate it</div><div class="v">≫</div><div class="note">The newest campuses in West Texas and Louisiana are 500 MW to 5 GW each, against older urban facilities of a few tens of megawatts. Counting buildings treats a 2 GW campus and a server closet as one each.</div></div>
+  </div>
+
+  <div class="callout orange">
+    <div class="eyebrow">The constraint is the pipe, not the pond</div>
+    <p>The most useful recent finding in this literature reframes what "local impact" even means. A 2026 UC Riverside paper argues that the binding constraint on host communities is <strong>peak withdrawal capacity, not annual volume</strong>. A town's water utility can comfortably supply a data center's average draw on paper and still lack the pipe, pumping and treatment capacity for its hot-day peak — which is exactly when the utility is already stretched.</p>
+    <p>The scale of that is the striking part. US data centers are projected to need <strong>697 to 1,451 million gallons per day of new water-supply capacity by 2030</strong>, against roughly 227 to 604 million if efficiency improves fast. For comparison, New York City's entire average daily supply is about 1,000 million gallons. The infrastructure bill is put at <strong>$10 to $58 billion</strong>.<sup><a href="#s35">35</a></sup></p>
+    <p>This is capacity, not consumption, and the distinction matters: a facility drawing 5 million gallons on a hot day and 1 million on an average one forces the utility to build for 5. It explains why West Des Moines showed up as a single peak month rather than an annual average, why so many fights are about hot-weather guarantees, and why "their annual use is only X percent of ours" keeps failing to reassure anyone locally. It is also why peak-capacity pressure pushes operators toward dry cooling, which then adds summer electricity demand at the same moment the grid peaks.</p>
+  </div>
+
+  <div class="prose">
+    <p>One genuinely reassuring counter-current: the largest projects in stressed basins are increasingly being engineered to use almost no water. Abilene's Stargate campus runs closed-loop with dry coolers at roughly 10 million gallons a year. Microsoft is piloting zero-water designs in Phoenix and Wisconsin. Chandler's air-cooled CyrusOne campus uses 180,000 gallons a year across eight buildings. <strong>Sitting in a stressed basin and consuming a lot of water are different claims</strong>, and the stress statistic cannot tell them apart. What no public dataset yet provides is the share of US capacity actually running evaporative cooling, which is the number that would settle the argument.</p>
+  </div>
+
+  <h3 style="margin-top:28px">Disputes and rules, 2025 to mid-2026</h3>
+  <div class="dispute">
+    <div class="row"><div class="where">Tucson, AZ<span>Project Blue, Beale / Amazon</span></div><div>Council killed annexation unanimously in August 2025 over water and power. Pima County approved the same footprint on unincorporated land in December, with Amazon no longer committed as anchor tenant. Arizona faces roughly a 50 percent Central Arizona Project cut under the 2026 Colorado River agreement.<sup><a href="#s19">19</a></sup></div><div class="status blocked">Rejected, then revived</div></div>
+    <div class="row"><div class="where">Newton County, GA<span>Meta, Stanton Springs</span></div><div>Campus is about 10 percent of county daily water. The New York Times documented dry and sediment-fouled private wells nearby; the county projects a supply deficit by 2030 and a 33 percent rate rise over two years. Georgia transparency and moratorium bills died in committee in 2026.</div><div class="status ongoing">Unresolved</div></div>
+    <div class="row"><div class="where">The Dalles, OR<span>Google</span></div><div>355 million gallons in 2021, 29 percent of city water, rising to roughly 550 million and about 40 percent by 2025. Google now discloses site-level water everywhere after the settlement; the city is planning to draw more from Mount Hood National Forest to keep up.</div><div class="status ongoing">Disclosed, growing</div></div>
+    <div class="row"><div class="where">Memphis, TN<span>xAI Colossus</span></div><div>Draws from the Memphis Sand aquifer, heading toward 5 million gallons a day. The $80M greywater plant xAI promised as its own fix has stalled. Roughly 35 gas turbines ran without air permits in an already heavily burdened neighbourhood.</div><div class="status ongoing">Mitigation stalled</div></div>
+    <div class="row"><div class="where">Aurora, CO<span>City code, 2025</span></div><div>New data centers may not use evaporative cooling. Council rejected a full moratorium in August 2026 and kept the cooling rule instead. The clearest binding local technology standard in the country.</div><div class="status rule">Binding rule</div></div>
+    <div class="row"><div class="where">Chandler, AZ<span>City policy since 2015</span></div><div>Water capped at 115 gallons per day per 1,000 square feet. CyrusOne's eight-building air-cooled campus there uses about 180,000 gallons a year, essentially humidification only. Proof that a hyperscale-class campus can run nearly dry in the desert, at an electricity cost.</div><div class="status rule">Binding cap</div></div>
+    <div class="row"><div class="where">Loudoun County, VA<span>Data Center Alley</span></div><div>More than 200 facilities are 10 to 15 percent of county water. Loudoun Water has delivered reclaimed wastewater to about 40 of them since 2010, 750 million gallons in 2025. JLARC called Virginia's data-center water use currently sustainable but growing and poorly reported.</div><div class="status rule">Reclaimed water model</div></div>
+    <div class="row"><div class="where">Texas, statewide<span>25 bn gal in 2025</span></div><div>More than 80 percent of the state was in drought in 2025. The state water plan has no data-center demand category at all. Voters passed a $20B water fund in November 2025; SB 6 governs grid interconnection, not water. Abilene's Stargate runs closed-loop at about 10M gal/yr behind a 1 GW simple-cycle gas plant.</div><div class="status ongoing">Unplanned demand</div></div>
+    <div class="row"><div class="where">Caledonia, WI &amp; Prince William, VA<span>Microsoft; QTS/Compass</span></div><div>Microsoft withdrew a 244-acre campus after 40 of 49 hearing speakers opposed it. Virginia's Digital Gateway rezoning was voided in court and the project died. Data Center Watch counts $64B blocked or delayed through 2025, with water the leading objection in over 40 percent of contested projects.<sup><a href="#s21">21</a></sup></div><div class="status blocked">Blocked</div></div>
+  </div>
+
+</section>
+
+<!-- ============ 8. COULD IT BE BUILT ELSEWHERE ============ -->
+<section class="sec" id="elsewhere">
+  <div class="sec-head">
+    <div class="eyebrow">Feasibility</div>
+    <h2>Could this be built somewhere with water?</h2>
+    <p class="lead">Yes, and the proof already exists. The best cooling performance in the industry comes from cold, wet places that use almost no water. Nothing physical pushes data centers toward dry regions. What pushes them is cheap land, fast permitting, mature tax incentives, fifteen years of accumulated fiber and trades, and water priced at a fraction of its worth.</p>
+  </div>
+
+  <div class="prose">
+    <p>I had the tradeoff slightly wrong earlier on this page and it is worth correcting, because it is the crux of the question. The conflict is not <em>wet versus dry</em>. It is <strong>hot-dry versus cool-wet</strong>.</p>
+    <p>Evaporative cooling works by pushing air toward its wet-bulb temperature, which in a hot dry climate sits far below the air temperature. That is why Phoenix can cool efficiently on a 105-degree day, and why it spends water to do it. A cool climate does something better: it lets a facility reject heat to outside air directly for most of the year and skip mechanical refrigeration altogether. Cool and wet is not a compromise between the two. It is simply the best cell in the grid on both axes at once.</p>
+  </div>
+
+  <div class="two">
+    <div>
+      <h3>Free cooling by climate</h3>
+      <p class="note">Approximate hours per year a facility can cool on outside air alone, at an 80°F supply setpoint.</p>
+      <div class="tscroll"><table>
+        <thead><tr><th>Climate zone</th><th class="num">Hours/yr</th><th class="num">Share of year</th></tr></thead>
+        <tbody>
+          <tr><td>Miami</td><td class="num">200</td><td class="num">2%</td></tr>
+          <tr><td>Atlanta</td><td class="num">3,500</td><td class="num">40%</td></tr>
+          <tr><td>New York</td><td class="num">5,000</td><td class="num">57%</td></tr>
+          <tr><td>Chicago</td><td class="num">5,800</td><td class="num">66%</td></tr>
+          <tr><td>Minneapolis</td><td class="num">6,500</td><td class="num">75%</td></tr>
+          <tr class="em"><td>Duluth, Fairbanks, Nordics</td><td class="num">7,500+</td><td class="num">85%+</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <h3>What cool and wet actually achieves</h3>
+      <p class="note">Real disclosed figures. Power usage effectiveness of 1.0 would mean zero overhead beyond the servers.</p>
+      <div class="tscroll"><table>
+        <thead><tr><th>Site</th><th class="num">PUE</th><th>Water</th></tr></thead>
+        <tbody>
+          <tr class="em"><td>Meta, Luleå, Sweden</td><td class="num">1.07–1.09</td><td>6.7M gal <strong>per year</strong>, whole campus</td></tr>
+          <tr class="em"><td>Google, Hamina, Finland</td><td class="num">1.09</td><td>Seawater loop, near-zero freshwater</td></tr>
+          <tr><td>Microsoft, Mount Pleasant, WI</td><td class="num">n/d</td><td>8.4M gal/yr at full build; typical day 15,000 gal</td></tr>
+          <tr><td>Google fleet average</td><td class="num">1.09</td><td>—</td></tr>
+          <tr><td>A hot-dry evaporative campus</td><td class="num">1.2–1.4</td><td>1–5M gal <strong>per day</strong></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="callout green">
+    <div class="eyebrow">The comparison that settles the physics</div>
+    <p>Meta's Luleå campus uses <strong>6.7 million gallons of water in a year</strong> while running a power usage effectiveness of 1.07 to 1.09, which is as good as anything the industry has built. A hot-dry evaporative-cooled hyperscale campus can use that much water <strong>in a day or two</strong>, and generally posts a worse PUE. There is no thermodynamic tax for siting in a wet region. The best numbers in the industry come from exactly there.</p>
+  </div>
+
+  <h3 style="margin-top:26px">So why does it keep happening in the desert?</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Constraint</th><th>Are wet regions disadvantaged?</th><th>What the evidence shows</th></tr></thead>
+    <tbody>
+      <tr class="em"><td><strong>Power availability and speed to energization</strong></td><td>No — everyone is constrained</td><td>The dominant factor, ranked top-three by 84% of decision-makers. But there is no headroom anywhere: PJM waits reached about seven years in Northern Virginia, MISO averages five, and Texas <strong>paused all new data-center interconnections in August 2026</strong> against a 474 GW queue. The "go where the power is" instinct is chasing a target that is shrinking everywhere at once.</td></tr>
+      <tr><td>Land cost</td><td>No, advantaged</td><td>Loudoun County land has traded near $6.3M per acre. Rural Midwest farmland is a small fraction of that.</td></tr>
+      <tr><td>Permitting and zoning speed</td><td>Yes</td><td>Texas counties largely cannot block by-right development; developers seek unincorporated land for exactly that reason. Northeast and coastal review runs years longer.</td></tr>
+      <tr><td>Tax incentives</td><td>Yes, currently</td><td>38 states offer breaks but Virginia, Texas and Georgia run the largest and most durable. Illinois and Ohio have paused theirs; Washington ended an exemption in 2026.</td></tr>
+      <tr><td>Fiber and latency</td><td>Only for inference</td><td>Training is latency-insensitive and can go anywhere with power. Inference follows population and is projected to pass training by 2030, which does favour proximity to metros.</td></tr>
+      <tr><td>Agglomeration: crews, fiber, relationships</td><td>Yes, genuinely</td><td>Fifteen years of accumulated ecosystem in Northern Virginia, Texas and Phoenix is a real first-mover advantage. It is built capital, not geography, and Ohio, Wisconsin and Iowa are replicating it now.</td></tr>
+      <tr><td>Natural hazard risk</td><td>No, advantaged</td><td>Hurricanes touch 34% of US data centers and tornadoes 30%. Great Lakes, New England and Nordic sites avoid most of it.</td></tr>
+      <tr class="em"><td><strong>Water price</strong></td><td>No — and this is the distortion</td><td>Microsoft's own internal accounting at San Antonio found the true cost of water was <strong>eleven times what it was paying</strong>. A resource priced at a ninth of its value cannot discipline a siting decision.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="prose">
+    <p>Two complications keep this from being a simple "just build it in Ohio" conclusion.</p>
+    <p><strong>Wet does not automatically mean low-water.</strong> Most of a facility's footprint is at the power plant, so a wet-region campus on a coal-heavy grid can out-consume a dry-region campus on renewables with closed-loop cooling. The sites that solve both halves at once are the ones pairing a cool climate with a low-water grid: the Nordics on hydro, Quebec, and hydro-served upstate New York. That is the genuine best case, not "wet" alone.</p>
+    <p><strong>The Great Lakes are not the obvious answer either.</strong> The basin holds a fifth of the world's surface freshwater and the Compact's diversion ban works as designed against large exports. But the live gap is governance of cumulative in-basin and groundwater use below the five-million-gallon-a-day review trigger, which is where dozens of campuses would actually sit. Worth noting that Ohio's marquee cluster at New Albany is <strong>not in the Great Lakes basin at all</strong> — it drains to the Scioto and the Ohio River, a conflation that appears often in coverage.</p>
+  </div>
+
+  <h3 style="margin-top:26px">A national problem with no national referee</h3>
+  <div class="prose">
+    <p>If the harm is local and the capital is mobile, local government is structurally the wrong level to solve it. When Tucson's council unanimously rejected Project Blue in August 2025, the developer moved to Pima County, which approved the same footprint on unincorporated land and closed the land sale that December. Developers now withdraw proposals before a formal vote specifically so that a public rejection cannot be cited by the next county. That is jurisdiction-shopping as a deliberate strategy, not an emergent pattern.</p>
+    <p>What nobody has done is net it out. Trackers count blocked projects — roughly $130 billion in the first quarter of 2026 alone — but <strong>no study establishes whether that capacity is lost or simply relocated.</strong> It is the central empirical question in this debate and it is unanswered.</p>
+  </div>
+
+  <div class="tscroll"><table>
+    <thead><tr><th>Level</th><th>Lever</th><th>Status</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>Federal</td><td>Executive Order 14318 and Clean Water Act nationwide permit 39</td><td>In force</td><td>Names data centers as eligible for streamlined wetland permits and expedites review for projects over 100 MW. <strong>Accelerates approval; attaches no water conditions.</strong></td></tr>
+      <tr><td>Federal</td><td>EPA effluent guidelines for data centers</td><td>Never issued</td><td>A genuine regulatory void. Discharge limits are set case by case.</td></tr>
+      <tr><td>Federal</td><td>FERC large-load interconnection</td><td>In force</td><td>No water authority exists or is contemplated; the Federal Power Act reserves siting to states.</td></tr>
+      <tr><td>Federal</td><td>Data Center Water and Energy Transparency Act (S. 4213)</td><td>Stalled in committee</td><td>Would require reporting for facilities over 25 MW. Disclosure only, no cap. No floor vote scheduled.</td></tr>
+      <tr class="em"><td>Federal</td><td>December 2025 AI preemption order</td><td>In force</td><td>Moves to preempt state AI law while <strong>explicitly exempting state data-center and water rules</strong>. Washington is deliberately leaving this to the states.</td></tr>
+      <tr class="em"><td>State</td><td>Minnesota water permit for large data centers</td><td>Enacted 2025</td><td>First in the nation to make a water permit a gating step rather than a disclosure. The closest thing to a real siting lever.</td></tr>
+      <tr><td>State</td><td>Utah HB 76</td><td>Enacted 2026</td><td>Pre-siting notification to the local water provider so compatibility can be assessed. Modest but genuinely ex ante.</td></tr>
+      <tr><td>State</td><td>Virginia waterworks reporting</td><td>Effective Jan 2027</td><td>Utility-aggregated only. <strong>Facility-level data stays a trade secret.</strong></td></tr>
+      <tr><td>State</td><td>Maine and New York moratoria</td><td>Enacted</td><td>The only two statewide pauses. Maine halts facilities over 20 MW to late 2027.</td></tr>
+      <tr><td>State</td><td>Georgia transparency and moratorium bills</td><td>All seven died in 2026</td><td>An active legislature, comprehensively blocked.</td></tr>
+      <tr class="em"><td>Local</td><td>Chandler AZ cap; Aurora CO evaporative ban; Marana AZ potable-water refusal</td><td>In force</td><td>Technology mandates demonstrably work: Chandler's cap produced an eight-building campus using 180,000 gallons a year. They are diffusing. They cannot fix cross-border shopping.</td></tr>
+      <tr class="em"><td>International</td><td>EU data-centre reporting</td><td>In force since 2024</td><td>Mandatory and standardised for anything over 500 kW, covering 24 data points including water-usage effectiveness. The most rigorous regime in existence, and still <strong>not the public per-site registry it is usually described as</strong>: collection is facility-level but publication is aggregated to member state and EU totals, with individual facility data confidentiality-protected. An earlier version of this page called it public per-site reporting, which was wrong.</td></tr>
+      <tr><td>Everywhere</td><td><strong>Scarcity pricing for water</strong></td><td><strong>Zero examples</strong></td><td>Every other lever has at least one enacted instance. Utilities price for cost recovery, not scarcity. This is the largest untouched lever and the one economists keep pointing at.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout">
+    <div class="eyebrow">The answer to "is it inherently impossible"</div>
+    <p>No. It is inherently <em>possible</em> and currently <em>unincentivised</em>. The physics favours cool wet regions, the best-performing facilities in the world are already there, and the cooling technology that removes water from the equation carries a 20 to 40 percent capex premium that pays back in two to four years and is dwarfed by power-price swings. What keeps capital in dry basins is a bundle of policy and path dependence — permitting speed, tax regimes, accumulated ecosystems — sitting on top of a resource that is priced at roughly a ninth of its replacement value. Every one of those is a choice, and none of them is hydrology.</p>
+  </div>
+</section>
+
+<!-- ============ 9. NEXT FIVE YEARS ============ -->
+<section class="sec" id="next">
+  <div class="sec-head">
+    <div class="eyebrow">2028 to 2030</div>
+    <h2>The next five years are an electricity-mix story</h2>
+    <p class="lead">US data-center electricity is projected to double or triple by 2028. On-site water grows more slowly as new builds go closed-loop. That pushes the whole question to the power plants, where the answer depends entirely on what gets built to serve the load.</p>
+  </div>
+
+  <div class="two">
+    <figure class="chart" id="c7a" style="margin-top:0">
+      <div class="t">US data-center electricity</div>
+      <div class="st">TWh per year. LBNL actuals through 2023; 2028 is LBNL's low and high scenario.</div>
+      <div class="plot"></div>
+      <figcaption>2028 is 325 to 580 TWh, 6.7 to 12 percent of US electricity. Goldman's 2030 US figure is about 750 TWh; EPRI's 2030 range is 9 to 17 percent of load.<sup><a href="#s23">23</a></sup></figcaption>
+    </figure>
+    <figure class="chart" id="c7b" style="margin-top:0">
+      <div class="t">US data-center on-site water</div>
+      <div class="st">Billion gallons per year, consumptive. 2028 shows two LBNL-attributed ranges that could not be reconciled.</div>
+      <div class="plot"></div>
+      <figcaption>Hyperscale-only projection 16 to 33 bn gal; broader press-cited range 38 to 73. On-site water grows more slowly than electricity because new capacity is disproportionately closed-loop.<sup><a href="#s4">4</a></sup></figcaption>
+    </figure>
+  </div>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="c7"></div></details>
+
+  <div class="prose">
+    <p>Bluefield Research puts the indirect, power-plant share at 72 percent of total US data-center water by 2030, with indirect consumption rising from 54 to 91 billion gallons a year.<sup><a href="#s25">25</a></sup> Global AI-specific estimates are wider: Morgan Stanley's 2028 central case is 1,068 billion litres across all scopes, and Ren's 2027 withdrawal estimate is 4.2 to 6.6 billion cubic metres. The spread is the boundary problem again, not a disagreement about physics.</p>
+  </div>
+
+  <h3 style="margin-top:26px">Generation water, audited</h3>
+  <div class="prose">
+    <p>Everything in the chart below is <strong>consumption</strong>, meaning water that evaporates and does not return to the source. That produces one result worth stating plainly because it inverts the usual intuition: <strong>a once-through plant consumes less than a cooling-tower plant of the same type</strong>. Once-through coal withdraws roughly 36,000 gallons per MWh against a tower plant's 1,000, but it consumes about 250 against the tower's 687, because the heat leaves in a warmer river rather than in evaporated steam. Withdrawal and consumption do not merely differ in size; for this comparison they rank in opposite orders.</p>
+    <p>Two corrections from the audit are visible here. <strong>Solar is a range, not a number.</strong> The 26 gallons per MWh in NREL's table is a median drawn from a small literature dominated by arrays that are actually washed, which in practice means desert installations cleaned several times a year. A fixed-tilt farm in Georgia or Ohio is rain-cleaned and may never be washed at all, putting it at or near zero. Using the median as though it described all solar was the same category of error as using a cooling-tower figure for every coal plant.</p>
+    <p>And <strong>hydropower, which was missing entirely, is the largest factor on the grid.</strong></p>
+  </div>
+
+  <figure class="chart" id="c8">
+    <div class="t">Water consumed per MWh generated, by technology and cooling type</div>
+    <div class="st">Gallons per MWh, consumptive, log scale. Dot is the median; bar is the published range across studies and practices. Cooling choice moves a technology further than technology choice moves it.</div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>Low or zero water</span><span><i style="background:var(--s2)"></i>Steam cycle with cooling</span><span><i style="background:var(--s3)"></i>Hydropower, allocated</span></div>
+    <div class="plot"></div>
+    <figcaption>Macknick et al. 2012 medians and ranges.<sup><a href="#s8">8</a></sup> Reconstructed from secondary summaries rather than read off the primary table, so treat the exact medians as approximate; the ordering and the orders of magnitude are solid. Wind's median is zero and is drawn at the axis floor.</figcaption>
+  </figure>
+  <details class="tbl"><summary>Table view</summary><div class="tscroll" data-table="c8"></div></details>
+
+  <div class="callout green">
+    <div class="eyebrow">Is hydropower really the thirstiest source? Mostly an accounting artifact</div>
+    <p><strong>The flow through the turbines is not consumed.</strong> That water continues downstream within minutes, which makes it withdrawal, and it is correctly excluded from every figure here.</p>
+    <p><strong>The reservoir is a different matter, and the evaporation is real.</strong> A large impoundment presents an enormous surface to the sun and the water leaving it does leave the basin. But how much to charge each megawatt-hour is a choice, not a measurement, and the published figures span an order of magnitude because of it.</p>
+    <p>The famous 18,000 gallons per MWh comes from Torcellini's 2003 NREL study, which took the 120 largest US dams, computed gross evaporation from reservoir surface area, and assigned <strong>100 percent of it to electricity</strong>. Those authors flagged the problem themselves, writing that most dams serve more than one function with no easy way to disaggregate, and even pre-empting the marginality objection by noting that if the evaporation happens regardless of generation then the hydroelectric water use "would be irrelevant." Macknick's 2012 review lists a median of 4,491 gallons per MWh but rests on only three data points from two studies, and <strong>NREL deliberately kept hydropower out of its own headline comparisons</strong> for exactly these reasons. Charting it beside coal and gas, as the first version of this page did, is doing the thing the source says not to do.</p>
+    <p><strong>The most careful US estimate is Grubert's 2016 analysis</strong>, which computes both gross and net. Gross, system-wide: 10,038 gallons per MWh. Net, after subtracting what the pre-dam land and river would have evaporated anyway and adjusting for multipurpose reservoirs: <strong>1,585 gallons per MWh</strong>. That is still the highest of any generation source, and Grubert says so, but at roughly 2.3 times median coal and 8 times gas combined cycle rather than the fifteen to ninety times the gross figures imply. Bakken's 2017 review finds allocation methods that assign anywhere from zero to 100 percent of evaporation to power, with the more defensible ones clustering at 35 to 55 percent.</p>
+    <p><strong>And the punchline for this report: Grubert finds Pacific Northwest net hydro consumption is effectively zero.</strong> The Columbia system is more than 40 percent of US hydro generation, and it is cool, wet and heavily run-of-river. So a data center on Columbia River power, which is most of the Oregon and Washington fleet, has a near-zero indirect water footprint under the accounting that survives scrutiny, and an enormous one under the convention that does not.</p>
+  </div>
+
+  <div class="callout orange">
+    <div class="eyebrow">Two corrections this forces on the rest of the page</div>
+    <p><strong>The Pacific Northwest claim above was backwards.</strong> An earlier version of this section said a campus in The Dalles sits on the grid with the highest allocated water intensity in the country, and that both halves of its footprint were extreme. Under Grubert's net accounting the opposite is true: its <em>grid</em> water is close to zero, and the 29 to 40 percent of city water it draws is the entire story. That makes The Dalles a cleaner case, not a murkier one, because the harm is direct municipal draw rather than a contested allocation.</p>
+    <p><strong>The national-share denominator mixes frameworks.</strong> USGS classifies hydroelectricity as an instream use and has excluded it from national withdrawal and consumption totals since 2000. So the 0.72 percent upper bound earlier on this page divides a numerator that includes allocated dam evaporation by a denominator that excludes it. Put hydro on both sides and the figure is about 0.67 percent; take it off both sides and it is 0.24 to 0.32 percent. The honest consistent range is <strong>roughly a quarter to two thirds of one percent</strong>, and the headline band on this page is the outer edge of that.</p>
+  </div>
+
+  <h3 style="margin-top:26px">What the grid factor actually contains</h3>
+  <p class="note">This matters more than any other number in the report, because every water figure here is an energy figure multiplied by one of these.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Factor</th><th class="num">L/kWh</th><th class="num">gal/MWh</th><th>What it is, and who it fits</th></tr></thead>
+    <tbody>
+      <tr><td>New gas combined cycle alone</td><td class="num">0.75</td><td class="num">198</td><td>The marginal resource serving most new US load. Right for asking what one more data center causes.</td></tr>
+      <tr><td>US grid average, hydro excluded</td><td class="num">1.0–1.25</td><td class="num">256–330</td><td>Derived here from the 2023 generation mix and Macknick medians. Arguably the best single estimate for a data center on PJM, ERCOT, MISO or the Southeast.</td></tr>
+      <tr class="em"><td>US grid average with hydro at Grubert's <strong>net</strong> figure</td><td class="num">1.4–1.6</td><td class="num">370–420</td><td>Adds 1,585 gal/MWh of hydro across a 6 percent hydro share. The most defensible whole-grid number, and it lands just under this report's central case.</td></tr>
+      <tr class="em"><td>Thermal-only intensity — this report's <strong>central</strong> case</td><td class="num">1.8</td><td class="num">476</td><td>Water per kWh from thermal plants. Applied here to all kWh, so mildly conservative. Close to the net-accounting grid average above, which is the main reason to trust it.</td></tr>
+      <tr><td>WRI / Ren national blend</td><td class="num">3.14</td><td class="num">830</td><td>Used in the 2023 "Making AI Less Thirsty" paper. Partial hydro allocation.</td></tr>
+      <tr class="em"><td>LBNL national and data-centre-weighted — this report's <strong>conservative</strong> case</td><td class="num">4.35–4.52</td><td class="num">1,149–1,194</td><td>Reproducible only by adding full hydro reservoir evaporation at the high end of the literature. An upper bound, and mostly an accounting artifact.</td></tr>
+      <tr><td>Washington State (Ren, regional)</td><td class="num">9.5</td><td class="num">2,510</td><td>Hydro-dominated. Real for The Dalles and Quincy, meaningless for Virginia.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p>The practical consequence: <strong>the conservative case in this report is roughly three times higher than the most defensible whole-grid figure</strong>, and the gap is almost entirely gross-allocated dam evaporation that the careful literature discounts. Priya's 2,700 gallons becomes about 1,600 on a hydro-excluded factor, about 1,400 at Grubert's net-accounting grid average, and about 1,000 if her load is served at the margin by gas. The headline figures keep the high number because the brief was a reasonable worst case, but nobody should quote 4.52 as a measurement of what a data center in Loudoun County consumes.</p>
+    <p>The reason to keep the central case at 1.8 rather than dropping to 1.25 is now clearer: a grid average built with Grubert's net hydro figure lands at 1.4 to 1.6, so 1.8 is a modest and defensible margin above the best estimate rather than an arbitrary choice.</p>
+  </div>
+
+  <h3 style="margin-top:26px">The 100 MW campus, five ways</h3>
+  <p class="note">Annual water for a 100 MW IT load at 85 percent utilisation: 745 GWh of IT energy, about 819 GWh at the meter at PUE 1.1. Millions of gallons per year. Cooling choice sets the first column; the power contract sets the second.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>Configuration</th><th class="num">On-site</th><th class="num">Power plant</th><th class="num">Total</th><th>Read</th></tr></thead>
+    <tbody>
+      <tr><td>Evaporative cooling, WUE 1.8, on a coal or nuclear steam fleet</td><td class="num">354</td><td class="num">550–563</td><td class="num">900–920</td><td>The worst case. Residential water for a town of 22,000.</td></tr>
+      <tr><td>Evaporative cooling, WUE 1.8, on gas combined cycle</td><td class="num">354</td><td class="num">162</td><td class="num">516</td><td>Typical of a 2019-era build on a gas-heavy grid.</td></tr>
+      <tr><td>Closed-loop dry cooling, +20% power, on a coal or nuclear fleet</td><td class="num">≈0</td><td class="num">660–675</td><td class="num">660–675</td><td>"Zero water" on the sign, and the water simply moved upstream. Worse in total than the gas row above it.</td></tr>
+      <tr><td>Hyperscaler fleet average, WUE 0.3, on the 2023 US grid</td><td class="num">59</td><td class="num">281–978</td><td class="num">340–1,040</td><td>Where Microsoft and AWS sit today. The wide generation range is the hydro-allocation fork, not a physical difference. On-site is already the small part.</td></tr>
+      <tr class="em"><td>Closed-loop dry cooling on wind, rain-cleaned solar or simple-cycle gas</td><td class="num">≈0</td><td class="num">1–5</td><td class="num">1–5</td><td>Roughly 180 times lower than the worst row. The only configuration that eliminates rather than relocates.</td></tr>
+      <tr><td>Same, but desert solar washed several times a year</td><td class="num">≈0</td><td class="num">15–33</td><td class="num">15–33</td><td>Still thirty times lower than the gas row. Washing is the entire difference, and it is optional.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout orange">
+    <div class="eyebrow">Implication for a solar and storage developer</div>
+    <p>One caveat first, since the hydro finding cuts against the simple version of this pitch: a campus on Columbia River hydro already has a near-zero net indirect water footprint, so the water argument does not sell in the Pacific Northwest. It sells in thermal-grid load pockets, which is where the growth is.</p>
+    <p>Water is a real and under-used argument for renewables-served data-center load, and the audit strengthens it rather than weakening it. Wind is zero gallons per MWh. Solar is one to five for the rain-cleaned arrays that make up most of the US fleet, and 26 only where panels are actually washed, which is a desert practice and a choice. Against that, gas combined cycle is about 200 and nuclear or coal with cooling towers is 670 to 690. In water-stressed load pockets, Arizona, Texas, the Front Range and the Great Salt Lake basin, a co-located or contracted solar-plus-storage supply is the difference between a campus that says zero-water and one that is. The one caveat worth carrying into a siting conversation is that desert solar is where washing actually happens, so the arrays serving a Phoenix campus are the ones least entitled to the zero-water claim, though at 26 gallons per MWh they still beat gas eightfold. The regulatory drift supports it: Aurora has banned evaporative cooling outright, Texas is funding water infrastructure while its state plan still has no data-center category, and Georgia is trying to ban the non-disclosure agreements that hide the numbers. Water intensity is on its way to becoming a siting and interconnection screen alongside capacity, and the developer who can document it has an argument nobody else in the queue is making.</p>
+  </div>
+
+  <h3 style="margin-top:26px">Mitigation, sorted by whether it reduces or relocates</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Measure</th><th>Water effect</th><th>Electricity effect</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td>Closed-loop, direct-to-chip liquid cooling (Microsoft zero-water design, Nvidia GB200)</td><td>Eliminates evaporative loss after the initial fill; Microsoft claims 125M L/yr saved per site</td><td>Neutral to higher; dry heat rejection costs 10 to 35 percent more power in summer</td><td>Reduces on-site, relocates part to the grid</td></tr>
+      <tr><td>Adiabatic and hybrid coolers</td><td>Dry most of the year, wet on the hottest days</td><td>Between dry and evaporative</td><td>Reduces, but concentrates use on peak-stress days</td></tr>
+      <tr><td>Reclaimed municipal wastewater (Loudoun, Google Douglas County, Quincy WA)</td><td>Displaces potable water one for one; watershed consumption unchanged</td><td>Small pumping and treatment load</td><td>Relieves the drinking-water utility, does not reduce consumption</td></tr>
+      <tr><td>Replenishment pledges: Google 64% in 2024, AWS 75% in 2025, Microsoft claims achieved FY2025</td><td>Restoration credits, often in a different basin or season from the withdrawal</td><td>None</td><td>Offset accounting, not local stress relief</td></tr>
+      <tr class="em"><td>Renewable or simple-cycle generation for the load</td><td>Removes 80 to 95 percent of the larger pipe</td><td>Simple-cycle burns more fuel per MWh; renewables need storage</td><td>The only measure that shrinks the dominant term</td></tr>
+      <tr><td>Water-aware scheduling of training (Ren)</td><td>Shifts flexible load to wetter regions and cooler hours; large modelled effect</td><td>Neutral or positive</td><td>Research stage; no operator reports doing it</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ 10. VERDICT ============ -->
+<section class="sec" id="verdict">
+  <div class="sec-head">
+    <div class="eyebrow">Verdict</div>
+    <h2>Is "AI uses unsustainable amounts of water" true?</h2>
+    <p class="lead">Nationally and for almost every individual, no, even at the conservative setting. Locally, in a specific and lengthening list of places, yes. The two sides of the public argument are mostly not contradicting each other.</p>
+  </div>
+
+  <div>
+    <div class="claim"><div class="who">"One prompt is a bottle of water"<span>Viral claim</span></div><div><p>False for typical chat by a factor of about 260, using this report's own conservative setting. Accidentally close for the heavy tail: nine long reasoning calls on a bad grid do empty a bottle, which lands inside the original paper's stated 10-to-50 range.</p><div class="chips"><span class="chip strong">Strong evidence</span><span class="chip mod">True only at the tail</span></div></div></div>
+    <div class="claim"><div class="who">"Google's 0.26 mL is the real number"<span>Industry framing</span></div><div><p>True for on-site cooling of a median prompt, misleading as a total. It omits the power-plant water that is 83 to 92 percent of every all-in estimate, uses a median that hides the reasoning tail, excludes training by name, and is not independently verified.</p><div class="chips"><span class="chip strong">Strong on the boundary</span></div></div></div>
+    <div class="claim"><div class="who">"Individual AI use is environmentally negligible"<span>Masley, Ritchie, Willison</span></div><div><p>Holds for light and moderate users by a wide margin: Dana's year is one flush, Marcus's is four showers. Weakens at the heavy end, where a conservative agentic year is 2,700 gallons and 1,850 kWh, appliance-scale rather than negligible. The marginal-impact argument, that abstaining changes no infrastructure, holds at every level and is undisputed.</p><div class="chips"><span class="chip strong">Strong for most users</span><span class="chip mod">Qualified for power users</span></div></div></div>
+    <div class="claim"><div class="who">"AI water use is a serious and growing problem"<span>Ren, de Vries-Gao, Bloomberg, community groups</span></div><div><p>Holds as a local and governance claim. Two-thirds of new US data centers since 2022 sit in high water stress, specific utilities are at 10 to 40 percent, Texas plans for none of it, and most operators do not report. Fails as a national-scarcity claim at 0.3 to 0.7 percent of consumption, though that is three to four times the figure usually quoted in rebuttals.</p><div class="chips"><span class="chip strong">Strong locally</span><span class="chip weak">Weak nationally</span></div></div></div>
+    <div class="claim"><div class="who">"Zero-water data centers solve it"<span>Hyperscaler roadmaps</span></div><div><p>Partly. Closed-loop cooling genuinely removes on-site evaporation. But dry cooling raises electricity 10 to 35 percent in summer, and on a steam-plant grid the water reappears at the power station: a dry-cooled campus on coal or nuclear consumes more total water than an evaporative one on gas. Solved only when the generation is also low-water.</p><div class="chips"><span class="chip mod">Moderate; depends on grid mix</span></div></div></div>
+    <div class="claim"><div class="who">"Water positive by 2030"<span>Google, Microsoft, Meta, AWS</span></div><div><p>Offset accounting. Replenishment credits rarely land in the basin, aquifer or season of the withdrawal, and Microsoft's "achieved" claim is a global net rather than a basin-by-basin one. Reclaimed-water substitution at the same site, as at Loudoun and Douglas County, is the credible version.</p><div class="chips"><span class="chip weak">Weak as stress relief</span></div></div></div>
+    <div class="claim"><div class="who">Any single 2028 total<span>All forecasters</span></div><div><p>Unreliable. LBNL's own 2028 on-site range exists in two incompatible published versions, global estimates span fivefold on scope, and the grid water factor alone moves indirect totals 2.4 times. Directionally: electricity doubles to triples, on-site water grows more slowly, and the indirect share rises toward three quarters.</p><div class="chips"><span class="chip contested">Contested; ranges only</span></div></div></div>
+  </div>
+
+  <div class="two">
+    <div class="callout">
+      <div class="eyebrow">What actually moves the number</div>
+      <p><strong>Generation mix</strong>, the largest lever and the least discussed, worth a factor of twenty to four hundred. <strong>Siting</strong>, wet and cool against Phoenix. <strong>Cooling choice</strong>, now being written into city codes. <strong>Disclosure</strong>, since no jurisdiction on earth yet publishes facility-level data-centre water use — the EU collects it and publishes only aggregates, and the pending US bill would not go further. <strong>Model choice</strong>, the one lever an individual holds, worth three to thirteen times per call.</p>
+    </div>
+    <div class="callout orange">
+      <div class="eyebrow">What to say when asked</div>
+      <p>Your own AI use is almost certainly not a water problem: a normal year is a few showers, and only heavy agentic use reaches appliance scale. Data centers as a class are not a national water problem at well under one percent of consumption. Specific data centers in specific dry or small-utility places are a real water problem, made worse by secrecy, and the fix is where they are built, how they are cooled and what powers them. Most of the water is at the power plant, so the water argument is a clean-generation argument wearing a different hat.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11. METHODS ============ -->
+<section class="sec" id="audit">
+  <div class="sec-head">
+    <div class="eyebrow">Methods</div>
+    <h2>How these numbers were built, and what got corrected</h2>
+    <p class="lead">This page went through three rounds of arithmetic audit. Most figures held; several did not, and the corrections are listed here rather than quietly absorbed, because a few of them moved conclusions.</p>
+  </div>
+  <h3>How this was made</h3>
+  <div class="prose">
+    <p>This page was assembled by an AI research process over about a day, and since the subject is AI's resource use it seems only fair to be specific about what that cost and how much of it can be trusted.</p>
+  </div>
+  <div class="kpis" style="margin:18px 0 22px" aria-label="Research effort">
+    <div class="kpi"><div class="l">Research agents launched</div><div class="v">20</div><div class="s">15 produced briefs. Five died to a rate limit mid-run and were relaunched.</div></div>
+    <div class="kpi"><div class="l">Source briefs filed</div><div class="v">15</div><div class="s">Labelled A to O, about 556 KB, kept alongside this page with URLs and per-figure confidence flags.</div></div>
+    <div class="kpi"><div class="l">Tool calls by agents</div><div class="v">≈700</div><div class="s">Overwhelmingly web searches and page fetches, plus direct PDF extraction where a figure mattered.</div></div>
+    <div class="kpi"><div class="l">Research tokens</div><div class="v">≈2.1<small>M</small></div><div class="s">Averaging 47 calls and 144k tokens per agent.</div></div>
+  </div>
+  <div class="prose">
+    <p>The briefs ran in parallel batches, each with a narrow remit so that findings could be cross-checked rather than compounded: national and global totals; per-query figures and the methodology fights behind them; everyday comparison baselines; US regional hotspots; projections and mitigation; the public debate and individual impact; a hydropower fact-check; water-stress exposure of the existing stock and of the planned pipeline; siting feasibility in wet regions; policy levers; data availability for site scoring; existing academic models and the behind-the-meter trend; one research group's programme; and a project-by-project tally of Texas cooling technology.</p>
+
+    <h3 style="margin-top:24px">How it was scrutinised</h3>
+    <p><strong>Arithmetic was recomputed, not inherited.</strong> Every figure that fed another figure was recalculated from its inputs rather than carried over from a brief. That caught a unit error in my own fuel-cost working, an inconsistency where two different cooling efficiencies had been mixed within a single estimate, and it produced a useful cross-check: one published regional water factor reproduces almost exactly from an independent hydropower figure and that state's hydro share, which is weak evidence both are right.</p>
+    <p><strong>Primary sources were opened where the number was load-bearing.</strong> The hydropower pass extracted raw text from the original reports rather than trusting summaries of them, which is how a widely repeated cooling-tower figure turned out to be off by a few percent, and how the scale of the reservoir-evaporation allocation problem became visible.</p>
+    <p><strong>Agents were checked against each other.</strong> One brief returned a coal water figure roughly thirty times higher than the verified one — a withdrawal number presented as consumption — and called hydropower near-zero, contradicting the hydro pass. It was flagged and not used. Two attribution errors surfaced the same way: a widely quoted water-stress statistic belongs to a different firm than everyone credits, and the European reporting regime that gets described as public per-site disclosure publishes only aggregates.</p>
+    <p><strong>The rendering was inspected, not eyeballed.</strong> Every chart was checked programmatically for labels escaping their bounds, broken footnote links, and navigation drifting out of sync with the sections. Several narrow-width clipping bugs were found and fixed this way.</p>
+
+    <h3 style="margin-top:24px">What the reader changed</h3>
+    <p>The most useful scrutiny came from the person commissioning this, not from the process. Four challenges changed published conclusions:</p>
+    <ul>
+      <li><strong>"Most solar farms don't wash panels — that seems harsh as a universal figure."</strong> Correct. A median drawn from washing-intensive desert arrays had been applied to the whole fleet. It became a range, and the renewables case improved by roughly fivefold.</li>
+      <li><strong>"Hydropower consumes more than any other source? Is that real?"</strong> This unravelled the largest error on the page. It is real only under an accounting convention that charges all reservoir evaporation to electricity, which the most careful study reduces sevenfold. It also reversed a regional claim, exposed a mismatched denominator in the national share, and demoted the report's own conservative factor from a measurement to a bound.</li>
+      <li><strong>"Simple-cycle for baseload? That seems inefficient and loud."</strong> Also correct, and the economics confirmed it: a fuel penalty of roughly $120m a year for a gigawatt campus. What I had described as permanent islanding is mostly bridge power, and the decisive variable turned out to be something else entirely — whether the on-site plant rejects heat through a tower or an air-cooled condenser, a fiftyfold swing.</li>
+      <li><strong>"Congestion pricing pulls new generation toward the load, doesn't it?"</strong> Yes, and it was missing. Since most of the fleet serving 2030 demand does not yet exist, what gets built and where may matter more than which existing units ramp.</li>
+    </ul>
+    <p>The corrections table below is the running record of that, including three figures that made the case look better than it is and were revised against interest.</p>
+
+    <h3 style="margin-top:24px">Where it remains weak</h3>
+    <p>Three limits are structural rather than fixable with more effort. <strong>There is no validation set:</strong> roughly a dozen US facilities have publicly known actual water use, most of it extracted through litigation, so every estimate here carries error bars nobody can measure. <strong>Two primary sources stayed shut:</strong> a key national report and the underlying methodology of the most-quoted water-stress statistic both refused automated access, and are cited through independent secondary write-ups that agree with each other. <strong>And the single most decision-relevant number does not exist anywhere:</strong> the share of data-centre capacity actually running evaporative cooling. Without it, no one can say how much of the stress-overlap statistic translates into real water consumption.</p>
+    <p>Figures are graded high, medium or low confidence at the foot of this page, and low-confidence items are marked in place rather than quietly averaged in.</p>
+  </div>
+
+  <h3 style="margin-top:24px">The two settings</h3>
+  <div class="prose">
+    <p>Every figure on this page is computed at one of two settings. The <strong>central case</strong> uses Google's measured 0.24 Wh for a simple prompt, a hyperscaler-typical cooling efficiency of 0.3 litres per kWh, and a grid water factor of 1.8. The <strong>conservative case</strong> uses 0.34 Wh, Google's own fleet cooling efficiency of 1.15 which is the worst among major disclosers, and the highest published grid factor of 4.52. Personal figures quote the conservative case unless marked. Nothing uses a best case.</p>
+    <p>On-site water is energy divided by power usage effectiveness, times cooling efficiency. Indirect water is energy times the grid factor. Everything is consumptive freshwater, and inference only unless training is named.</p>
+  </div>
+  <h3 style="margin-top:24px">Corrections</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Figure</th><th>Was</th><th>Now</th><th>Why</th><th class="fix">Effect</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Share of US water</strong></td><td>0.1–0.2%</td><td><strong>0.3–0.7%</strong></td><td>Data-center water is <em>consumption</em>; it was being divided by national <em>withdrawal</em>. Comparing consumption to consumption is the honest test and roughly triples the share.</td><td class="fix up">3–4× worse</td></tr>
+      <tr><td><strong>Solar PV generation water</strong></td><td>≈1, then 26 gal/MWh</td><td><strong>0–26, typically ≈5</strong></td><td>Corrected twice. The original 1 was too low; the 26 that replaced it is NREL's median but sits near the practical maximum, reflecting desert arrays washed several times a year. Most US farms are rain-cleaned and never washed, so a single median misrepresents the fleet. It is a range, not a number.</td><td class="fix dn">Overcorrected, now a range</td></tr>
+      <tr><td><strong>Grid water factor, 4.52 L/kWh</strong></td><td>Treated as a grid average</td><td><strong>Mostly a hydro allocation</strong></td><td>A US grid average excluding hydropower computes to about 1.0–1.25 L/kWh. Adding allocated reservoir evaporation at Torcellini's 18,000 gal/MWh reproduces roughly 5. So the conservative factor used throughout this report is an upper bound driven by one contested accounting convention, not a measurement.</td><td class="fix dn">Upper bound, not best estimate</td></tr>
+      <tr><td>Central factor, 1.8 L/kWh</td><td>Treated as a grid average</td><td>Thermal-only intensity</td><td>It is water per kWh <em>from thermal plants</em>, applied here to every kWh including the roughly 14% from wind and solar that consume almost none. Mildly conservative in the same direction.</td><td class="fix up">Slightly high</td></tr>
+      <tr><td><strong>Hydropower</strong></td><td>Absent, then charted at 4,491–18,000</td><td><strong>Net 1,585; gross 4,491–18,000</strong></td><td>Corrected twice again. It was missing entirely, then added at gross full-allocation figures that NREL itself excluded from headline comparisons. Grubert's net, counterfactual-adjusted US figure is 1,585 gal/MWh. Still the highest source, but 2.3× coal rather than 26×.</td><td class="fix dn">Overstated, now split</td></tr>
+      <tr><td><strong>Pacific Northwest grid water</strong></td><td>"Highest in the country"</td><td><strong>Effectively zero (net)</strong></td><td>Backwards. Grubert finds PNW net hydro consumption is effectively zero: the Columbia is cool, wet and largely run-of-river. The Dalles's story is its 29–40% of city water, not its grid.</td><td class="fix dn">Claim reversed</td></tr>
+      <tr><td>National share denominator</td><td>Mixed frameworks</td><td>0.24–0.67% consistent</td><td>USGS excludes hydro as instream use, so a hydro-inclusive numerator over a USGS-derived denominator double-counts the framework. Hydro on both sides gives 0.67%; off both sides, 0.24–0.32%.</td><td class="fix dn">Top end slightly high</td></tr>
+      <tr><td>CSP trough, wet cooled</td><td>906 gal/MWh</td><td><strong>865 gal/MWh</strong></td><td>Macknick's actual median, read from the primary table rather than a secondary summary.</td><td class="fix dn">Minor</td></tr>
+      <tr><td><strong>Heavy user, annual water</strong></td><td>580–1,160 gal</td><td><strong>2,700 gal</strong></td><td>The old heavy case mixed Google's cooling efficiency into the on-site term and one fleet's into the reasoning term, and it counted 500 prompts rather than the 700 model calls an agentic day actually makes.</td><td class="fix up">2.4× worse</td></tr>
+      <tr><td>Coal, recirculating</td><td>479 gal/MWh</td><td><strong>687 gal/MWh</strong></td><td>Macknick's median for a generic coal plant with a cooling tower. The old figure was a different subtype.</td><td class="fix up">Worse</td></tr>
+      <tr><td>Burger, blue water only</td><td>16 gal</td><td><strong>18.5 gal</strong></td><td>4% blue share of 15,415 L/kg over a 113 g patty. Minor.</td><td class="fix up">Minor</td></tr>
+      <tr><td>Google 0.26 mL per prompt</td><td colspan="2">Confirmed</td><td>0.22 Wh IT energy × 1.15 L/kWh fleet WUE = 0.25 mL. Internally consistent with the published paper.</td><td class="fix ok">Holds</td></tr>
+      <tr><td>Indirect water arithmetic</td><td colspan="2">Confirmed</td><td>176 TWh × 4.35 L/kWh = 202 bn gal; × 1.8 = 84 bn gal. Both reproduce.</td><td class="fix ok">Holds</td></tr>
+      <tr><td>US sector totals (USGS 2015)</td><td colspan="2">Confirmed</td><td>322 bn gal/day all withdrawals, irrigation 118, thermoelectric 133 withdrawn against 2.7 consumed.</td><td class="fix ok">Holds</td></tr>
+      <tr><td>LBNL on-site 17.4 bn gal</td><td colspan="2">Kept, flagged</td><td>Implies a fleet-average WUE near 0.55 L/kWh against IT load, well under the ~1.8 typical of evaporative cooling. Either most US capacity is not evaporative, or this figure is low. A 0.9 L/kWh fleet would give ~28 bn gal.</td><td class="fix up">Possibly low</td></tr>
+    </tbody>
+  </table></div>
+
+</section>
+
+<!-- ============ 12. APPENDIX: SITE SCORING ============ -->
+<section class="sec" id="scoring">
+  <div class="sec-head">
+    <div class="eyebrow">Appendix</div>
+    <h2>What a site-specific water score would take</h2>
+    <p class="lead">Everything on this page is a national or regional average standing in for something that is irreducibly local. The honest unit of analysis is a single facility on a single basin drawing from a specific grid. Here is what building that would actually require, and where it breaks.</p>
+  </div>
+
+  <div class="prose">
+    <h3>Why the spatial unit is not fixed</h3>
+    <p>The phrase "water-stressed area" hides a problem: <strong>the right boundary depends on how the facility gets its power.</strong></p>
+    <p>A <strong>grid-tied</strong> data center consumes its cooling water locally but its generation water wherever the serving plants sit — which, for a campus on PJM, means basins from Illinois to New Jersey. Five sixths of its footprint is not near it at all. It is <em>displaced</em>, not merely diffuse. A campus in Santa Clara may have much of its water physically evaporated in Arizona or off the Columbia, because California imports heavily.</p>
+    <p>An <strong>islanded</strong> campus with on-site generation collapses that entirely. Every drop, direct and indirect, lands at one coordinate. The site becomes the unit.</p>
+    <p>So the same question — "is this facility in a water-stressed place?" — has a different geometry depending on a commercial arrangement invisible from the outside. That is the core reason a national statistic cannot settle a local argument.</p>
+
+    <h3>The shape of the calculation</h3>
+    <p>A defensible score is a scarcity-weighted volume, not a raw one, because a gallon in the Rio Grande is not a gallon in the Ohio. The standard method for that weighting is AWARE, the ISO 14046 water-scarcity characterisation used in life-cycle assessment.</p>
+  </div>
+
+  <div class="callout">
+    <div class="eyebrow">The score, in words</div>
+    <p><strong>Direct term:</strong> IT energy × cooling efficiency (WUE) × the scarcity factor of the basin the site draws from.</p>
+    <p><strong>Indirect term:</strong> for each serving power plant, the energy attributed to this facility × that plant's water intensity × the scarcity factor of <em>that plant's</em> basin. Summed across the fleet, and across hours, because both the mix and the scarcity move.</p>
+    <p><strong>The attribution rule is what changes with facility type.</strong> Islanded: 100 percent to one on-site plant in the site's own basin, and the two terms collapse together. Grid-tied: distributed across the serving fleet's basins, by marginal dispatch rather than average mix.</p>
+  </div>
+
+  <h3 style="margin-top:26px">The five data layers, graded</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Layer</th><th>Grade</th><th>What exists</th><th>The catch</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. Power-plant water</strong></td><td class="fix ok">Strong</td><td>EIA Form 923 Schedule 8 collects <strong>monthly, plant-level</strong> cooling water: withdrawal, consumption, source type, intake temperature, per cooling system. EIA-860 adds cooling technology and coordinates. USGS published a monthly modelled reanalysis of 1,360 plants for 2008–2020 in the public domain. All join on plant ID.</td><td>Reporting covers steam plants ≥100 MW only. USGS data stops at 2020. The three federal sources disagreed by more than 2× for over half of plants at last comparison.</td></tr>
+      <tr><td><strong>2. Marginal attribution</strong></td><td class="fix up">Blocked</td><td>Hourly unit-level emissions monitoring from EPA, hourly generation by fuel and balancing authority from EIA, nodal prices from every ISO.</td><td><strong>No marginal water intensity exists anywhere, from anyone.</strong> The carbon world has several providers; water has no analog. And nodal generator dispatch is confidential by policy at PJM, CAISO, ERCOT and MISO alike — a policy choice, not a collection gap. Best public proxy is actual-dispatch-weighted, not marginal, and omits nuclear.</td></tr>
+      <tr><td><strong>3. Watershed and scarcity</strong></td><td class="fix ok">Strong</td><td>USGS watershed boundaries at nested resolutions, WRI Aqueduct 4.0 at sub-basin level, AWARE scarcity factors published monthly under an open licence, the Drought Monitor weekly, and about 1.5 million groundwater monitoring wells behind a public API.</td><td>Sub-basin resolution is not site resolution. Two facilities in the same unit score identically regardless of which aquifer each actually draws from.</td></tr>
+      <tr><td><strong>4. The facility itself</strong></td><td class="fix up">Blocked</td><td>Commercial location and capacity databases. One open academic dataset of US data center locations with scarcity annotations.</td><td><strong>No registry anywhere on earth publishes facility-level water use.</strong> The EU collects 24 data points per site above 500 kW and publishes only aggregates. Cooling technology, water source and actual volumes must be inferred.</td></tr>
+      <tr><td><strong>5. Water source and rights</strong></td><td class="fix dn">Buildable</td><td>Every prior-appropriation state runs a queryable rights database, and one academic project already harmonised eleven western states into a single schema.</td><td>Unstandardised across states and not a live feed. The national utility service-area dataset is roughly 60 percent machine-modelled with the agency's own accuracy disclaimer.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 style="margin-top:26px">Three tiers of ambition</h3>
+  <div class="tscroll"><table>
+    <thead><tr><th>Tier</th><th>Effort</th><th>What you get</th><th>What it cannot tell you</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1. Relative ranking</strong></td><td>2–4 weeks, one competent data person</td><td>Join an existing annotated facility list to plant locations, plant water data and sub-basin scarcity factors. Output is a defensible relative score across thousands of facilities on an average-grid basis. <strong>Most of the spine already exists publicly.</strong></td><td>Average grid mix rather than marginal. Inferred cooling technology. Sub-basin rather than site resolution. Plant water five years stale.</td></tr>
+      <tr><td><strong>2. Time-resolved volumes</strong></td><td>3–6 months, small team</td><td>Stitch hourly unit-level emissions data to plant water coefficients for an hourly actual-dispatch water intensity by balancing authority. Add weekly drought for time-varying scarcity, harmonised water rights, and satellite cooling-tower detection where technology is undisclosed. Output is volumetric estimates with uncertainty bands and seasonal resolution.</td><td>Still actual dispatch, not marginal. Still no facility-reported ground truth.</td></tr>
+      <tr><td><strong>3. Marginal and forward-looking</strong></td><td>Not buildable from public data</td><td>True marginal attribution needs licensed production-cost modelling. The investment channel — high prices at a congested node pulling new generation toward the load — needs a capacity-expansion model on top.</td><td>Output becomes scenario-dependent rather than measured. This is where the real uncertainty lives, and it cannot be resolved by better data collection alone.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout orange">
+    <div class="eyebrow">The three things that actually block it</div>
+    <p><strong>Disclosure does not exist.</strong> Not in the US, not in the EU, not anywhere. The facility layer must always be inferred, which caps the achievable accuracy no matter how good the rest gets.</p>
+    <p><strong>Nodal dispatch is confidential by design.</strong> Every US grid operator withholds unit-level dispatch. That is a policy decision, so no amount of engineering routes around it.</p>
+    <p><strong>Validation is the quiet killer.</strong> Roughly a dozen US facilities have publicly known actual water use, most of it extracted through litigation or permit conditions. <strong>You cannot validate a national model against twelve points.</strong> Any score built today is an estimate whose error bars are themselves unmeasurable.</p>
+  </div>
+
+  <h3 style="margin-top:26px">The one group that has actually built most of this</h3>
+  <div class="prose">
+    <p>Shaolei Ren's group at UC Riverside has published the closest thing to a working foundation, and their intellectual arc is worth following because it is a steady retreat from the number everyone quotes them for.</p>
+    <p><strong>2023:</strong> water is a hidden footprint with the same on-site versus off-site split that carbon accounting took years to sort out, and most public figures report only the on-site slice. That is the paper the "bottle of water" meme came from.</p>
+    <p><strong>2024:</strong> the footprint is unevenly distributed, and the load-balancing machinery hyperscalers already run for cost and latency could be pointed at equity instead. Naive cost-optimised routing produces a worst-site-to-average burden ratio of about 1.7; an equity-aware objective brings it to about 1.3.</p>
+    <p><strong>2026:</strong> volume is the wrong unit entirely. What matters is <em>stress-adjusted</em> water — a gallon drawn from a drought county in a dry month is a categorically different event from a gallon drawn from a wet county in a wet month — and, more sharply, <em>peak capacity</em> against the host utility's infrastructure. Their community-burden index across ten US sites spans <strong>0.2 percent to 134 percent of the host utility's total capacity</strong>, three orders of magnitude, which is the most direct quantification anywhere of why this argument is local.</p>
+    <p>Two of their findings cut against the alarm rather than for it. Their own per-prompt estimate for a current frontier model has come down to roughly <strong>15 mL total and 5 mL on-site</strong>, far below the viral figure. And stress-aware scheduling — shifting compute in time and space — cuts stress-adjusted water by <strong>up to 25 percent</strong> while also cutting carbon, with rainwater harvesting able to offset the entire on-site cooling load in wet regions. Those are large mitigations available without new hardware.</p>
+  </div>
+
+  <div class="callout green">
+    <div class="eyebrow">What you can actually pick up and use</div>
+    <p>Their 2026 dataset covers <strong>4,147 US data center locations</strong>, each annotated with county-level monthly water-stress factors and the water intensity of the electricity subregion serving it, plus precipitation and cooling efficiencies. It is a stress-context lookup table, not consumption telemetry: it tells you how much a gallon at that place in that month should count for, not how many gallons the facility actually draws. Combined with their earlier hourly water-efficiency release and an MIT-licensed reproduction pipeline, that is most of a Tier 1 build already sitting in public.<sup><a href="#s35">35</a></sup></p>
+    <p>Two caveats. There is no hosted calculator or API, so this is notebooks and CSVs rather than a drop-in tool. And the stress-weighting idea is not theirs alone — a separate Purdue group published a closely related adjusted-water-impact metric in 2025.</p>
+  </div>
+
+  <div class="callout">
+    <div class="eyebrow">Two gaps that matter specifically for behind-the-fence campuses</div>
+    <p>Federal cooling-water reporting covers steam plants at or above 100 MW. <strong>Simple-cycle turbines and reciprocating engines — exactly what is going in behind the meter — report nothing.</strong> And most data-center blowdown goes to municipal sewer under local pretreatment permits, which federal discharge tracking does not capture at all.</p>
+    <p>So the facilities whose footprint is most geographically concentrated, and therefore where local harm would be sharpest, are the ones the federal data system is blindest to. Published national models, including the baseline this page relies on, exclude behind-the-meter generation entirely.</p>
+  </div>
+</section>
+
+<!-- ============ 13. SOURCES ============ -->
+<section class="sec" id="sources">
+  <div class="sec-head">
+    <div class="eyebrow">Sources and confidence</div>
+    <h2>Where the numbers come from</h2>
+  </div>
+  <div class="conf">
+    <div><h4>High confidence</h4>Google per-prompt energy and water, measured and internally consistent; LBNL and IEA electricity; USGS 2015 sector totals; NREL water factors by technology; EPA WaterSense fixtures; hyperscaler reported totals and cooling efficiency; The Dalles and South Carolina disclosed volumes; de Vries-Gao AI range; all arithmetic in this report, recomputed.</div>
+    <div><h4>Medium confidence</h4>LBNL 2023 on-site water, primary PDF blocked and possibly low given the implied fleet efficiency; Ren's 87 percent indirect split; Jegham per-model energies, modelled from API latency and revised threefold between paper versions; the derived national consumption denominator; the derived hydro-excluded grid factor; Macknick medians, reconstructed from summaries rather than the primary table; burger blue-water share; Loudoun 10 to 15 percent; Texas 25 bn gal; training amortisation at 35 percent.</div>
+    <div><h4>Low or unresolved</h4>LBNL 2028 on-site water, two incompatible ranges; any IEA-attributed global water figure, which may originate with UN University; Argonne 2.18 and WRI 3.14 L/kWh, found but not traced to primary sources; Altman's 0.32 mL, no method published; frontier training-run energy, extrapolated; national golf and per-email figures, which do not credibly exist.</div>
+  </div>
+
+  <ol class="src">
+    <li id="s1">Google Cloud, "Measuring the environmental impact of AI inference," 21 Aug 2025; arXiv 2508.15734. <a href="https://cloud.google.com/blog/products/infrastructure/measuring-the-environmental-impact-of-ai-inference">cloud.google.com</a></li>
+    <li id="s2">Epoch AI, "How much energy does ChatGPT use?" Feb 2025 <a href="https://epoch.ai/gradient-updates/how-much-energy-does-chatgpt-use">epoch.ai</a>; Altman, "The Gentle Singularity," June 2025.</li>
+    <li id="s3">Li, Yang, Islam, Ren, "Making AI Less Thirsty," arXiv 2304.03271 v5; Communications of the ACM, 2025. <a href="https://arxiv.org/abs/2304.03271">arxiv.org</a></li>
+    <li id="s4">LBNL, "2024 United States Data Center Energy Usage Report," Dec 2024 <a href="https://eta-publications.lbl.gov/sites/default/files/2024-12/lbnl-2024-united-states-data-center-energy-usage-report_1.pdf">eta-publications.lbl.gov</a>; water figures via Latitude Media and Construction Physics, "I was wrong about data center water." <a href="https://www.construction-physics.com/p/i-was-wrong-about-data-center-water">construction-physics.com</a></li>
+    <li id="s5">Jegham et al., "How Hungry is AI?" arXiv 2505.09598 v6 <a href="https://arxiv.org/abs/2505.09598">arxiv.org</a>; Microsoft Research, "Energy Use of AI Inference," Sept 2025; Microsoft Cloud Blog, June 2026.</li>
+    <li id="s6">Mistral, "Our contribution to a global environmental standard for AI," July 2025, the only vendor-published training water figure. <a href="https://mistral.ai/news/our-contribution-to-a-global-environmental-standard-for-ai">mistral.ai</a></li>
+    <li id="s7">MIT Technology Review, "We did the math on AI's energy footprint," 20 May 2025, source of the 80–90 percent inference share. <a href="https://www.technologyreview.com/2025/05/20/1116327/ai-energy-usage-climate-footprint-big-tech/">technologyreview.com</a></li>
+    <li id="s8">Macknick et al., NREL/TP-6A20-50900 (2011) and Environ. Res. Lett. 7 045802 (2012), read from the primary tables. <a href="https://docs.nrel.gov/docs/fy11osti/50900.pdf">docs.nrel.gov</a></li>
+    <li id="s35">UC Riverside (Ren group): Han, Li, Wierman &amp; Ren, "Small Bottle, Big Pipe: Quantifying and Addressing the Impact of Data Centers on Public Water Systems," arXiv 2603.02705 (March 2026) — the peak-capacity argument, 697–1,451 MGD and $10–58bn <a href="https://arxiv.org/abs/2603.02705">arxiv.org</a>; Talukder, Rahim, Gupta, Ren &amp; Islam, "Balancing Bits and Drops: Stress-Adjusted Water Management for Data Centers," arXiv 2607.22617, ACM e-Energy '26, with the 4,147-location dataset at <a href="https://osf.io/dv6s3/">osf.io/dv6s3</a>; Akinade, Amanambu, Frame &amp; Ren, "AI Data Centers and the Water Use Feedback Loop," arXiv 2606.21760 (the 0.2–134% community-burden index); "Towards Environmentally Equitable AI via Geographical Load Balancing," ACM e-Energy 2024; "A Dataset for Research on Water Sustainability," ACM e-Energy 2024, hourly water efficiency at <a href="https://osf.io/g3zvd/">osf.io/g3zvd</a>; reproduction code at <a href="https://github.com/Ren-Research/Making-AI-Less-Thirsty">github.com/Ren-Research</a>, MIT licence. Related but independent: Wu, Hua &amp; Ding (Purdue), "Not All Water Consumption Is Equal," arXiv 2506.22773.</li>
+    <li id="s34">Site-scoring data layers: EIA Form 923 Schedule 8 (monthly plant-level cooling water) <a href="https://www.eia.gov/electricity/data/eia923/">eia.gov</a> and Form 860 (cooling technology, plant coordinates); USGS thermoelectric water-use reanalysis 2008–2020, DOI 10.5066/P9ZE2FVM; EPA eGRID, which contains no water fields; EPA CAMPD hourly unit-level emissions; EIA-930 hourly grid monitor; USGS Watershed Boundary Dataset; WRI Aqueduct 4.0 at HydroBASINS-6 <a href="https://www.wri.org/data/aqueduct-water-risk-atlas">wri.org</a>; AWARE scarcity characterisation factors (WULCA, ISO 14046); US Drought Monitor; USGS NWIS groundwater; HarDWR harmonised western water rights, DOI 10.57931/2205619; EPA ECHO for air and discharge permits. Congressional Research Service R49057 (July 2026) confirms the absence of any US federal data-centre water disclosure requirement.</li>
+    <li id="s30">Water-stress statistics: Bloomberg (DC Byte × WRI Aqueduct, new builds since 2022, facility count) <a href="https://www.bloomberg.com/graphics/2025-ai-impacts-data-centers-water-data/">bloomberg.com</a>; Siddik, Shehabi &amp; Marston, "The environmental footprint of data centers in the United States," Environ. Res. Lett. 16 064017 (2021), the only peer-reviewed US stock study, on 2018 data <a href="https://iopscience.iop.org/article/10.1088/1748-9326/abfba1">iopscience.iop.org</a>; Ceres, "Water Behind the Watts," Aug 2026; Verisk Maplecroft hub Water Stress Index (the true source of the widely misattributed "52% by 2030"); MSCI GeoSpatial Asset Intelligence, Dec 2025 (25% of existing global facilities, 2050 scarcity-days). WRI Aqueduct is the underlying basin-stress framework throughout. <a href="https://www.wri.org/aqueduct">wri.org/aqueduct</a></li>
+    <li id="s31">Pipeline and siting: BloombergNEF US data center capacity outlook (118 GW by 2030, 194 GW by 2035); CBRE North America Data Center Trends H1 2026 (frontier markets 77% of construction pipeline; Atlanta passes Northern Virginia) <a href="https://www.cbre.com/insights/books/north-america-data-center-trends-h1-2026">cbre.com</a>; Grid Strategies National Load Growth Report; dcmap.us state pipeline tracker; Uptime Intelligence on announcement attrition; Utility Dive on the August 2026 ERCOT interconnection pause <a href="https://www.utilitydive.com/news/texas-hits-pause-data-center-interconnections/827046/">utilitydive.com</a>.</li>
+    <li id="s32">Feasibility: LBNL air-side free-cooling maps <a href="https://datacenters.lbl.gov/sites/default/files/WP46UpdatedAirsideFreeCoolingMapsTheImpactofASHRAE2011AllowableRanges.pdf">lbl.gov</a>; Meta Luleå and Google Hamina disclosed PUE and water; Great Lakes–St. Lawrence River Basin Compact thresholds <a href="https://www.glslcompactcouncil.org/media/oh0jjha4/data-centers-and-thresholds-overview.pdf">glslcompactcouncil.org</a>; Alliance for the Great Lakes, "A Finite Resource," Aug 2025; Microsoft's San Antonio true-cost-of-water finding via Reason's water-markets analysis <a href="https://reason.com/2026/03/24/the-data-center-water-panic-has-a-better-answer-water-markets/">reason.com</a>.</li>
+    <li id="s33">Policy: Executive Order 14318 and Clean Water Act Nationwide Permit 39 (2026); Congressional Research Service R49057 on the absence of EPA effluent guidelines; S. 4213 / H.R. 9825 <a href="https://www.congress.gov/bill/119th-congress/senate-bill/4213">congress.gov</a>; Minnesota 2025 water-permitting requirement; Utah HB 76 (2026); Virginia waterworks reporting effective Jan 2027; Maine and New York statewide moratoria; Chandler, Aurora and Marana ordinances; MultiState and Good Jobs First bill trackers; EU Delegated Regulation 2024/1364.</li>
+    <li id="s29">Hydropower: Torcellini, Long &amp; Judkoff, "Consumptive Water Use for U.S. Power Production," NREL/TP-550-33905 (2003), the source of the 18,000 gal/MWh figure and of the authors' own multipurpose and marginality caveats <a href="https://www.nrel.gov/docs/fy04osti/33905.pdf">nrel.gov</a>; Grubert, "Water consumption from hydroelectricity in the United States," Advances in Water Resources (2016), gross 10,038 and net 1,585 gal/MWh; Bakken et al. (2017) on allocation methods spanning 0–100 percent; Mekonnen &amp; Hoekstra (2012) arguing for full gross attribution; USGS Circular 1441 on hydroelectricity as an instream use excluded from national withdrawal and consumption totals since 2000.</li>
+    <li id="s9">USGS Circular 1441, "Estimated Use of Water in the United States in 2015"; USGS SIR 2019-5103 on thermoelectric withdrawal and consumption. <a href="https://pubs.usgs.gov/publication/cir1441">pubs.usgs.gov</a></li>
+    <li id="s10">de Vries-Gao, Patterns, Dec 2025. <a href="https://www.cell.com/patterns/fulltext/S2666-3899(25)00278-8">cell.com</a></li>
+    <li id="s11">de Vries, "Bitcoin's growing water footprint," Cell Reports Sustainability, 2023. <a href="https://www.cell.com/cell-reports-sustainability/fulltext/S2949-7906(23)00004-6">cell.com</a></li>
+    <li id="s12">Brookings, "AI, data centers, and water"; Uptime Institute, "Water is local: generalities do not apply." <a href="https://www.brookings.edu/articles/ai-data-centers-and-water/">brookings.edu</a></li>
+    <li id="s13">EPA WaterSense, "How We Use Water," plus showerhead, toilet and faucet specifications. <a href="https://www.epa.gov/watersense/how-we-use-water">epa.gov</a></li>
+    <li id="s14">Mekonnen &amp; Hoekstra, "A Global Assessment of the Water Footprint of Farm Animal Products," Ecosystems, 2012; beef 15,415 L/kg total with roughly 4 percent blue. <a href="https://waterfootprint.org/resources/Mekonnen-Hoekstra-2012-WaterFootprintFarmAnimalProducts_1.pdf">waterfootprint.org</a></li>
+    <li id="s15">Masley, "The AI water issue is fake," Oct 2025, updated Apr 2026 <a href="https://www.andymasley.com/writing/the-ai-water-issue-is-fake/">andymasley.com</a>; Willison, Oct 2025; Ritchie, Sustainability by Numbers, Aug 2025.</li>
+    <li id="s16">Crawford &amp; Luccioni, arXiv 2501.16548; Undark, "AI data centers and water," 16 Dec 2025. <a href="https://undark.org/2025/12/16/ai-data-centers-water/">undark.org</a></li>
+    <li id="s17">Data Center Dynamics on the Oregon disclosure, 2023; OPB, "As Google's water demands grow, The Dalles aims to pull more from Mount Hood forest," Jan 2026. <a href="https://www.opb.org/article/2026/01/15/as-googles-water-demands-grow-the-dalles-aims-to-pull-more-from-mount-hood-forest/">opb.org</a></li>
+    <li id="s18">Texas Tribune, "Texas data center water use," Sept 2025; HARC, "Texas data center boom could consume up to 161 billion gallons." <a href="https://www.texastribune.org/2025/09/25/texas-data-center-water-use/">texastribune.org</a></li>
+    <li id="s19">AZ Luminaria, Aug 2025 on the Tucson vote; KOLD, Dec 2025 on Pima County; Circle of Blue on Arizona's data-center water budget. <a href="https://www.circleofblue.org/2025/supply/data-centers-a-small-but-growing-factor-in-arizonas-water-budget/">circleofblue.org</a></li>
+    <li id="s20">Bloomberg, "The AI Boom Is Draining Water From the Areas That Need It Most," 2025. <a href="https://www.bloomberg.com/graphics/2025-ai-impacts-data-centers-water-data/">bloomberg.com</a></li>
+    <li id="s21">Data Center Watch 2025 report and 2026 updates; CNBC on Caledonia, Nov 2025; Virginia Business on Digital Gateway. <a href="https://www.datacenterwatch.org/report">datacenterwatch.org</a></li>
+    <li id="s22">Uptime Institute Global Data Center Survey 2024 <a href="https://datacenter.uptimeinstitute.com/rs/711-RIA-145/images/2024.GlobalDataCenterSurvey.Report.pdf">uptimeinstitute.com</a>; EU Delegated Regulation 2024/1364; S. 4213, Data Center Water and Energy Transparency Act of 2026.</li>
+    <li id="s23">IEA, "Energy and AI," April 2025 <a href="https://www.iea.org/reports/energy-and-ai">iea.org</a>; Goldman Sachs 2025 and 2026 updates; EPRI "Powering Intelligence"; BloombergNEF July 2026.</li>
+    <li id="s24">Microsoft, "Sustainable by design: next-generation datacenters consume zero water for cooling," Dec 2024; Sensorex and Baltimore Aircoil on the dry-versus-evaporative electricity penalty. <a href="https://www.microsoft.com/en-us/microsoft-cloud/blog/2024/12/09/sustainable-by-design-next-generation-datacenters-consume-zero-water-for-cooling/">microsoft.com</a></li>
+    <li id="s25">Bluefield Research, "U.S. Water for Data Centers, 2025–2030"; Morgan Stanley, Sept 2025. <a href="https://www.bluefieldresearch.com/ns/data-center-electricity-demand-nearly-doubles-to-8-9-by-2030/">bluefieldresearch.com</a></li>
+    <li id="s26">Hyperscaler reports: Google 2025 Environmental Report (8.1 bn gal 2024, 10.9 bn gal 2025); Microsoft 2025 Environmental Sustainability Report (13,266 ML, WUE 0.27); Meta 2025 (3,881 ML); AWS 2026 (2.5 bn gal, WUE 0.12–0.15). EIA Residential Energy Consumption Survey for household electricity.</li>
+    <li id="s27">Regional: Iowa Public Radio, Sept 2023 on West Des Moines and GPT-4 training; NewsNation and the New York Times on Newton County; Memphis Flyer and E&amp;E News on xAI; Nebraska Examiner, July 2026; Colorado Sun and Sentinel Colorado on Aurora; Wisconsin Examiner on Mount Pleasant; ICPRB on the Potomac basin; JLARC Report 598; Loudoun Water reclaimed program.</li>
+  </ol>
+</section>
+</main>
+
+<footer><div class="wrap">Compiled September 2026 from fifteen parallel research passes and three rounds of arithmetic audit; the methods section above records what was corrected and what remains weak. All conversions use 1 gallon = 3.7854 litres. Derived figures are labelled as such, and figures marked medium or low confidence should be re-verified against primary sources before being relied on.</div></footer>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const tt=$('#tt');
+  function showTT(e,title,val,note){tt.textContent='';const b=document.createElement('b');b.textContent=val;tt.appendChild(b);const l=document.createElement('span');l.textContent=title;tt.appendChild(l);if(note){const n=document.createElement('div');n.className='n';n.textContent=note;tt.appendChild(n);}tt.classList.add('on');moveTT(e);}
+  function moveTT(e){tt.style.left=Math.min(e.clientX+14,window.innerWidth-310)+'px';tt.style.top=(e.clientY+16)+'px';}
+  function hideTT(){tt.classList.remove('on');}
+  const S={s1:'var(--s1)',s2:'var(--s2)',s3:'var(--s3)',de:'var(--de)'};
+  const NS='http://www.w3.org/2000/svg';
+  function el(n,a,txt){const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
+  function fmtNum(v){if(v>=1e6)return (v/1e6).toFixed(v>=1e7?0:1).replace(/\.0$/,'')+'M';if(v>=1000)return Math.round(v).toLocaleString('en-US');if(v>=100)return String(Math.round(v));if(v>=10)return String(Math.round(v*10)/10);if(v>=1)return String(Math.round(v*100)/100);return String(Math.round(v*1000)/1000);}
+  function fmtRange(it,unit){const u=unit?' '+unit:'';if(it.lo!=null&&it.hi!=null&&it.lo!==it.hi)return fmtNum(it.lo)+'–'+fmtNum(it.hi)+u;return (it.prefix||'')+fmtNum(it.val)+u;}
+
+  function ladder(sel,cfg){
+    const fig=$(sel);if(!fig)return;const host=fig.querySelector('.plot');
+    host.textContent='';
+    const W=Math.max(320,host.clientWidth||900);const narrow=W<680;
+    const labW=narrow?0:(cfg.labW||300);const padR=narrow?16:130;const padL=narrow?12:labW+14;
+    const rowH=narrow?48:34;const top=(cfg.refs&&cfg.refs.length)?36:16;const bottom=40;
+    const H=top+cfg.items.length*rowH+bottom;
+    const svg=el('svg',{viewBox:'0 0 '+W+' '+H,width:W,height:H,role:'img','aria-label':cfg.aria||cfg.t||''});
+    const plotW=W-padL-padR;const lmin=Math.log10(cfg.min),lmax=Math.log10(cfg.max);
+    const x=v=>padL+(Math.log10(Math.max(v,cfg.min))-lmin)/(lmax-lmin)*plotW;
+    for(let p=Math.ceil(lmin);p<=Math.floor(lmax);p++){const v=Math.pow(10,p);const gx=x(v);
+      svg.appendChild(el('line',{class:'grid',x1:gx,x2:gx,y1:top-6,y2:H-bottom+6}));
+      let ta='middle',tx=gx;
+      if(gx-26<0){ta='start';tx=2;}else if(gx+26>W){ta='end';tx=W-2;}
+      svg.appendChild(el('text',{class:'tick',x:tx,y:H-bottom+22,'text-anchor':ta},cfg.tick(v)));}
+    svg.appendChild(el('line',{class:'axis',x1:padL,x2:W-padR,y1:H-bottom+6,y2:H-bottom+6}));
+    (cfg.refs||[]).forEach(r=>{const rx=x(r.val);
+      svg.appendChild(el('line',{class:'refline',x1:rx,x2:rx,y1:top-10,y2:H-bottom+6}));
+      svg.appendChild(el('text',{class:'ref',x:rx,y:top-16,'text-anchor':r.anchor||'middle'},r.label));});
+    cfg.items.forEach((it,i)=>{
+      const cy=top+i*rowH+(narrow?rowH-12:rowH/2);
+      const g=el('g',{class:'row'});const col=S[it.series]||S.s1;
+      if(narrow)g.appendChild(el('text',{class:'rowlab',x:padL,y:top+i*rowH+14},it.label));
+      else g.appendChild(el('text',{class:'rowlab',x:labW,y:cy+4,'text-anchor':'end'},it.label));
+      const lo=it.lo!=null?it.lo:it.val,hi=it.hi!=null?it.hi:it.val;
+      if(lo!==hi)g.appendChild(el('line',{class:'mark',x1:x(lo),x2:x(hi),y1:cy,y2:cy,stroke:col,'stroke-width':6,'stroke-linecap':'round',opacity:.4}));
+      const v=it.val!=null?it.val:Math.sqrt(lo*hi);
+      if(it.open)g.appendChild(el('line',{class:'mark',x1:x(v),x2:x(v)+plotW*0.07,y1:cy,y2:cy,stroke:col,'stroke-width':2,'stroke-dasharray':'2 3'}));
+      g.appendChild(el('circle',{class:'mark',cx:x(v),cy:cy,r:7,fill:'var(--surface)'}));
+      g.appendChild(el('circle',{class:'mark',cx:x(v),cy:cy,r:5,fill:col}));
+      const lab=fmtRange(it,cfg.unit);
+      if(narrow)g.appendChild(el('text',{class:'val',x:W-padR,y:top+i*rowH+14,'text-anchor':'end'},lab));
+      else if(x(hi)+12+lab.length*6.6>W-2)g.appendChild(el('text',{class:'val',x:W-2,y:cy+4,'text-anchor':'end'},lab));
+      else g.appendChild(el('text',{class:'val',x:x(hi)+12,y:cy+4},lab));
+      const hit=el('rect',{class:'hit',x:0,y:top+i*rowH,width:W,height:rowH,tabindex:0,role:'img','aria-label':it.label+': '+lab});
+      hit.addEventListener('pointermove',e=>showTT(e,it.label,lab,it.note));
+      hit.addEventListener('pointerleave',hideTT);
+      hit.addEventListener('focus',()=>{const r=hit.getBoundingClientRect();showTT({clientX:r.left+padL,clientY:r.top},it.label,lab,it.note);});
+      hit.addEventListener('blur',hideTT);
+      g.appendChild(hit);svg.appendChild(g);});
+    host.appendChild(svg);
+  }
+
+  function hbars(sel,cfg){
+    const fig=$(sel);if(!fig)return;const host=fig.querySelector('.plot');
+    host.textContent='';
+    const W=Math.max(320,host.clientWidth||900);const narrow=W<680;
+    const labW=narrow?0:(cfg.labW||300);const padR=narrow?16:95;const padL=narrow?12:labW+14;
+    const rowH=narrow?48:32;const top=14;const bottom=36;
+    const H=top+cfg.items.length*rowH+bottom;
+    const svg=el('svg',{viewBox:'0 0 '+W+' '+H,width:W,height:H,role:'img','aria-label':cfg.aria||''});
+    const plotW=W-padL-padR;const x=v=>padL+v/cfg.max*plotW;
+    (cfg.ticks||[]).forEach(t=>{const gx=x(t);svg.appendChild(el('line',{class:'grid',x1:gx,x2:gx,y1:top-4,y2:H-bottom+4}));
+      let ta='middle',tx=gx;
+      if(gx-26<0){ta='start';tx=2;}else if(gx+26>W){ta='end';tx=W-2;}
+      svg.appendChild(el('text',{class:'tick',x:tx,y:H-bottom+20,'text-anchor':ta},cfg.tick?cfg.tick(t):String(t)));});
+    svg.appendChild(el('line',{class:'axis',x1:padL,x2:padL,y1:top-4,y2:H-bottom+4}));
+    cfg.items.forEach((it,i)=>{
+      const y0=top+i*rowH+(narrow?rowH-22:6);const bh=narrow?14:20;
+      const g=el('g',{class:'row'});const col=S[it.series]||S.s1;
+      if(narrow)g.appendChild(el('text',{class:'rowlab',x:padL,y:top+i*rowH+14},it.label));
+      else g.appendChild(el('text',{class:'rowlab',x:labW,y:y0+bh/2+4,'text-anchor':'end'},it.label));
+      const lo=it.lo!=null?it.lo:it.val,hi=it.hi!=null?it.hi:it.val;
+      const bw=Math.max(3,x(lo)-padL);
+      g.appendChild(el('path',{class:'mark',fill:col,d:'M'+padL+' '+y0+' H'+(padL+bw-4)+' a4 4 0 0 1 4 4 v'+(bh-8)+' a4 4 0 0 1 -4 4 H'+padL+' Z'}));
+      if(hi!==lo){g.appendChild(el('rect',{class:'mark',x:x(lo),y:y0,width:Math.max(1,x(hi)-x(lo)),height:bh,fill:col,opacity:.35}));
+        g.appendChild(el('line',{x1:x(hi),x2:x(hi),y1:y0-2,y2:y0+bh+2,stroke:col,'stroke-width':2}));}
+      const lab=fmtRange(it,cfg.unit);
+      if(narrow)g.appendChild(el('text',{class:'val',x:W-padR,y:top+i*rowH+14,'text-anchor':'end'},lab));
+      else g.appendChild(el('text',{class:'val',x:x(hi)+8,y:y0+bh/2+4},lab));
+      const hit=el('rect',{class:'hit',x:0,y:top+i*rowH,width:W,height:rowH,tabindex:0,role:'img','aria-label':it.label+': '+lab});
+      hit.addEventListener('pointermove',e=>showTT(e,it.label,lab,it.note));
+      hit.addEventListener('pointerleave',hideTT);
+      hit.addEventListener('focus',()=>{const r=hit.getBoundingClientRect();showTT({clientX:r.left+padL,clientY:r.top},it.label,lab,it.note);});
+      hit.addEventListener('blur',hideTT);
+      g.appendChild(hit);svg.appendChild(g);});
+    host.appendChild(svg);
+  }
+
+  function stacked(sel,cfg){
+    const fig=$(sel);if(!fig)return;const host=fig.querySelector('.plot');
+    host.textContent='';
+    const W=Math.max(320,host.clientWidth||900);const narrow=W<680;
+    const labW=narrow?0:(cfg.labW||270);const padR=narrow?16:90;const padL=narrow?12:labW+14;
+    const rowH=narrow?58:44;const top=14;const bottom=36;const H=top+cfg.rows.length*rowH+bottom;
+    const svg=el('svg',{viewBox:'0 0 '+W+' '+H,width:W,height:H,role:'img','aria-label':cfg.aria||''});
+    const plotW=W-padL-padR;const x=v=>padL+v/cfg.max*plotW;
+    (cfg.ticks||[]).forEach(t=>{svg.appendChild(el('line',{class:'grid',x1:x(t),x2:x(t),y1:top-4,y2:H-bottom+4}));
+      svg.appendChild(el('text',{class:'tick',x:x(t),y:H-bottom+20,'text-anchor':'middle'},String(t)));});
+    svg.appendChild(el('line',{class:'axis',x1:padL,x2:padL,y1:top-4,y2:H-bottom+4}));
+    cfg.rows.forEach((r,i)=>{
+      const y0=top+i*rowH+(narrow?rowH-28:10);const bh=22;
+      const g=el('g',{class:'row'});
+      if(narrow)g.appendChild(el('text',{class:'rowlab',x:padL,y:top+i*rowH+14},r.label));
+      else g.appendChild(el('text',{class:'rowlab',x:labW,y:y0+bh/2+4,'text-anchor':'end'},r.label));
+      let cum=0;const total=r.segs.reduce((a,s)=>a+s.val,0);
+      r.segs.forEach((s,j)=>{const x0=x(cum)+(j?2:0);const x1=x(cum+s.val);const w=Math.max(0,x1-x0);const last=j===r.segs.length-1;
+        const d=last?'M'+x0+' '+y0+' H'+(x1-4)+' a4 4 0 0 1 4 4 v'+(bh-8)+' a4 4 0 0 1 -4 4 H'+x0+' Z':'M'+x0+' '+y0+' h'+w+' v'+bh+' h'+(-w)+' Z';
+        const p=el('path',{class:'mark',d:d,fill:S[s.series]});
+        const lab=fmtNum(s.val)+' '+cfg.unit;
+        p.addEventListener('pointermove',e=>showTT(e,r.label+' · '+s.label,lab,s.note));
+        p.addEventListener('pointerleave',hideTT);
+        g.appendChild(p);
+        if(w>72)g.appendChild(el('text',{x:x0+8,y:y0+bh/2+4,style:'font-size:12px;fill:#fff'},fmtNum(s.val)));
+        cum+=s.val;});
+      const totLab=fmtNum(total)+' total';
+      if(x(total)+8+totLab.length*7>W-4)g.appendChild(el('text',{class:'val',x:W-4,y:y0+bh/2+4,'text-anchor':'end'},totLab));
+      else g.appendChild(el('text',{class:'val',x:x(total)+8,y:y0+bh/2+4},totLab));
+      svg.appendChild(g);});
+    host.appendChild(svg);
+  }
+
+  function fan(sel,cfg){
+    const fig=$(sel);if(!fig)return;const host=fig.querySelector('.plot');
+    host.textContent='';
+    const W=Math.max(280,host.clientWidth||440);const H=240;const padL=54,padR=76,top=18,bottom=34;
+    const svg=el('svg',{viewBox:'0 0 '+W+' '+H,width:W,height:H,role:'img','aria-label':cfg.aria||''});
+    const years=cfg.points.map(p=>p.year);const ymin=Math.min.apply(null,years),ymax=Math.max.apply(null,years);
+    const x=y=>padL+(y-ymin)/(ymax-ymin)*(W-padL-padR);const yv=v=>top+(1-v/cfg.max)*(H-top-bottom);
+    (cfg.ticks||[]).forEach(t=>{svg.appendChild(el('line',{class:'grid',x1:padL,x2:W-padR,y1:yv(t),y2:yv(t)}));
+      svg.appendChild(el('text',{class:'tick',x:padL-8,y:yv(t)+4,'text-anchor':'end'},fmtNum(t)));});
+    svg.appendChild(el('line',{class:'axis',x1:padL,x2:W-padR,y1:yv(0),y2:yv(0)}));
+    const seen={};cfg.points.forEach(p=>{if(seen[p.year])return;seen[p.year]=1;
+      svg.appendChild(el('text',{class:'tick',x:x(p.year),y:H-bottom+22,'text-anchor':'middle'},String(p.year)));});
+    const act=cfg.points.filter(p=>p.val!=null);
+    const last=act[act.length-1];
+    cfg.points.filter(p=>p.lo!=null).forEach((p,k)=>{
+      const col=k===0?S.s1:S.s3;const px=x(p.year)+k*12;
+      svg.appendChild(el('line',{x1:x(last.year),x2:px,y1:yv(last.val),y2:yv(p.lo),stroke:col,'stroke-width':1.5,'stroke-dasharray':'3 3',opacity:.65}));
+      svg.appendChild(el('line',{x1:x(last.year),x2:px,y1:yv(last.val),y2:yv(p.hi),stroke:col,'stroke-width':1.5,'stroke-dasharray':'3 3',opacity:.65}));
+      svg.appendChild(el('line',{x1:px,x2:px,y1:yv(p.lo),y2:yv(p.hi),stroke:col,'stroke-width':6,'stroke-linecap':'round',opacity:.5}));
+      svg.appendChild(el('text',{class:'val',x:px+10,y:yv(p.hi)+4},fmtNum(p.hi)));
+      svg.appendChild(el('text',{class:'val',x:px+10,y:yv(p.lo)+4},fmtNum(p.lo)));
+      if(p.tag&&px+10+p.tag.length*7<W)svg.appendChild(el('text',{class:'tick',x:px+10,y:(yv(p.lo)+yv(p.hi))/2+4},p.tag));
+      const hit=el('rect',{class:'hit',x:px-10,y:yv(p.hi)-8,width:34,height:Math.max(12,yv(p.lo)-yv(p.hi)+16)});
+      hit.addEventListener('pointermove',e=>showTT(e,p.year+(p.tag?' '+p.tag:''),fmtNum(p.lo)+'–'+fmtNum(p.hi)+' '+cfg.unit,p.note));
+      hit.addEventListener('pointerleave',hideTT);svg.appendChild(hit);});
+    svg.appendChild(el('path',{d:act.map((p,i)=>(i?'L':'M')+x(p.year)+' '+yv(p.val)).join(' '),fill:'none',stroke:S.s1,'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+    act.forEach(p=>{svg.appendChild(el('circle',{cx:x(p.year),cy:yv(p.val),r:7,fill:'var(--surface)'}));
+      svg.appendChild(el('circle',{cx:x(p.year),cy:yv(p.val),r:5,fill:S.s1}));
+      svg.appendChild(el('text',{class:'val',x:x(p.year),y:yv(p.val)-12,'text-anchor':'middle'},fmtNum(p.val)));
+      const hit=el('rect',{class:'hit',x:x(p.year)-14,y:yv(p.val)-16,width:28,height:32});
+      hit.addEventListener('pointermove',e=>showTT(e,String(p.year),fmtNum(p.val)+' '+cfg.unit,p.note));
+      hit.addEventListener('pointerleave',hideTT);svg.appendChild(hit);});
+    svg.appendChild(el('text',{class:'tick',x:padL,y:top-6},cfg.unit));
+    host.appendChild(svg);
+  }
+
+  /* ---------- STATE TILE MAP ---------- */
+  const STRESS=['','Low','Moderate','High','Extremely high'];
+  function tilemap(sel,cfg){
+    const fig=$(sel);if(!fig)return;const host=fig.querySelector('.plot');
+    host.textContent='';
+    const COLS=11,ROWS=8,T=46,G=5,P=T+G;
+    const W=COLS*P-G, H=ROWS*P-G;
+    const svg=el('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':'Tile map of US states shaded by water stress with data center markets'});
+    svg.setAttribute('style','width:100%;height:auto;max-width:'+W+'px;margin:0 auto');
+    cfg.tiles.forEach(t=>{
+      const x=t.c*P,y=t.r*P;
+      const g=el('g',{class:'row'});
+      g.appendChild(el('rect',{x:x,y:y,width:T,height:T,rx:3,fill:'var(--st'+t.s+')'}));
+      g.appendChild(el('text',{x:x+T/2,y:y+(t.mw?17:T/2+4),'text-anchor':'middle',
+        style:'font-family:Archivo,sans-serif;font-size:12.5px;font-weight:600;fill:var(--stx'+t.s+')'},t.id));
+      if(t.mw){
+        const r=Math.max(3,Math.sqrt(t.mw)/9);
+        g.appendChild(el('circle',{cx:x+T/2,cy:y+T-15,r:r+2,fill:'var(--surface)'}));
+        g.appendChild(el('circle',{cx:x+T/2,cy:y+T-15,r:r,fill:'var(--s2)'}));
+      }
+      const lab=t.name+' — '+STRESS[t.s]+' water stress'+(t.mw?'; '+t.market+' '+t.mw.toLocaleString('en-US')+' MW':'');
+      const hit=el('rect',{class:'hit',x:x,y:y,width:T,height:T,tabindex:0,role:'img','aria-label':lab});
+      const note=(t.split?'Splits internally: '+t.split+'. ':'')+(t.note||'');
+      hit.addEventListener('pointermove',e=>showTT(e,t.name+(t.mw?' · '+t.market:''),STRESS[t.s]+' stress'+(t.mw?' · '+t.mw.toLocaleString('en-US')+' MW':''),note));
+      hit.addEventListener('pointerleave',hideTT);
+      hit.addEventListener('focus',()=>{const b=hit.getBoundingClientRect();showTT({clientX:b.left,clientY:b.top},t.name,STRESS[t.s]+' stress',note);});
+      hit.addEventListener('blur',hideTT);
+      g.appendChild(hit);svg.appendChild(g);
+    });
+    host.appendChild(svg);
+    const lg=document.getElementById('maplegend');
+    if(lg&&!lg.dataset.done){
+      [1,2,3,4].forEach(i=>{const sp=document.createElement('span');
+        const ic=document.createElement('i');ic.style.background='var(--st'+i+')';sp.appendChild(ic);
+        sp.appendChild(document.createTextNode(STRESS[i]+' stress'));lg.appendChild(sp);});
+      const sp=document.createElement('span');const ic=document.createElement('i');
+      ic.style.background='var(--s2)';ic.style.borderRadius='50%';sp.appendChild(ic);
+      sp.appendChild(document.createTextNode('Major data-center market'));lg.appendChild(sp);
+      lg.dataset.done='1';
+    }
+  }
+
+  function table(id,cols,rows){const host=document.querySelector('[data-table="'+id+'"]');if(!host)return;host.textContent='';
+    const t=document.createElement('table');const th=document.createElement('thead');const trh=document.createElement('tr');
+    cols.forEach(c=>{const e=document.createElement('th');e.textContent=c.h;if(c.num)e.className='num';trh.appendChild(e);});
+    th.appendChild(trh);t.appendChild(th);const tb=document.createElement('tbody');
+    rows.forEach(r=>{const tr=document.createElement('tr');cols.forEach(c=>{const e=document.createElement('td');e.textContent=c.f(r);if(c.num)e.className='num';tr.appendChild(e);});tb.appendChild(tr);});
+    t.appendChild(tb);host.appendChild(t);}
+
+  /* ================= DATA ================= */
+  const mlTick=v=>v<1?v+' mL':(v>=1000?(v/1000)+' L':v+' mL');
+
+  const c1=[
+    {label:'Microsoft production query, on-site',val:0.03,lo:0.005,hi:0.067,series:'s1',note:'June 2026 vendor blog, 0.16–0.60 Wh per query. Unverified.'},
+    {label:'Google Gemini median prompt, on-site',val:0.26,series:'s1',note:'Measured May 2025. 0.24 Wh at fleet WUE 1.15 and PUE 1.09. Excludes power-plant water and training.'},
+    {label:'Simple chat, all-in — CENTRAL',val:0.50,series:'s2',note:'0.24 Wh measured; on-site 0.07 at WUE 0.3, power plant 0.43 at 1.8 L/kWh.'},
+    {label:'Simple chat, all-in — CONSERVATIVE',val:1.90,series:'s2',note:'0.34 Wh; on-site 0.36 at Google WUE 1.15, power plant 1.54 at 4.52 L/kWh. Used for every personal figure in this report.'},
+    {label:'GPT-4o long prompt, all-in (2.9 Wh)',val:9,lo:6,hi:13,series:'s2',note:'Jegham et al. v6: 10k tokens in, 1.5k out.'},
+    {label:'Long reasoning / agent call — CENTRAL',val:10.4,series:'s2',note:'5 Wh; on-site 1.4, power plant 9.0.'},
+    {label:'Ren 2023, GPT-3 medium request (4 Wh)',val:16.9,lo:7.1,hi:47.5,series:'s2',note:'US average 16.9 mL; Ireland 7.1, Texas 7.6, Washington 47.5 on hydro. Source of "500 mL per 10–50 responses".'},
+    {label:'Mistral Large 2, 400-token reply, full LCA',val:45,series:'s3',note:'Includes on-site, electricity, hardware and amortised training. The only vendor lifecycle figure published.'},
+    {label:'Long reasoning / agent call — CONSERVATIVE',val:55.8,series:'s2',note:'10 Wh; on-site 10.6 at WUE 1.15, power plant 45.2 at 4.52 L/kWh. Nine of these equal a 500 mL bottle.'},
+    {label:'DeepSeek-R1 long prompt, own servers',val:220,series:'s2',open:true,note:'Over 200 mL. 29 Wh on a Chinese grid at 6.0 L/kWh. The same model on Azure is 34 mL.'},
+    {label:'Five-second AI video (CogVideoX, 944 Wh)',val:2000,lo:1000,hi:3000,series:'s2',note:'Open model measured by ML.ENERGY. Sora has never been measured.'}
+  ];
+  ladder('#c1',{items:c1,min:0.003,max:5000,unit:'mL',tick:mlTick,labW:310,refs:[{label:'500 mL bottle',val:500}]});
+  table('c1',[{h:'Estimate',f:r=>r.label},{h:'mL',f:r=>fmtRange(r,''),num:true},{h:'Counts',f:r=>({s1:'On-site only',s2:'On-site + generation',s3:'Full lifecycle'})[r.series]},{h:'Basis',f:r=>r.note}],c1);
+
+  stacked('#c2',{max:240,unit:'bn gal',ticks:[0,50,100,150,200],labW:270,rows:[
+    {label:'Thermal-only factor, 1.8 L/kWh',segs:[{label:'On-site',val:17.4,series:'s1',note:'LBNL 2023, 66 bn L consumed'},{label:'Power plant',val:84,series:'s2',note:'176 TWh × 1.8 L/kWh. Indirect share 83%.'}]},
+    {label:'Blended factor, 4.52 L/kWh',segs:[{label:'On-site',val:17.4,series:'s1',note:'LBNL 2023, 66 bn L consumed'},{label:'Power plant',val:210,series:'s2',note:'176 TWh × 4.52 L/kWh, LBNL data-centre-weighted, includes hydro evaporation. Indirect share 92%.'}]}
+  ]});
+  table('c2',[{h:'Scenario',f:r=>r.s},{h:'On-site',f:r=>r.a,num:true},{h:'Power plant',f:r=>r.b,num:true},{h:'Total',f:r=>r.t,num:true},{h:'Indirect share',f:r=>r.p,num:true},{h:'% of US consumption',f:r=>r.c,num:true}],[
+    {s:'Thermal-only, 1.8 L/kWh',a:'17.4',b:'83.7',t:'101',p:'83%',c:'0.32%'},
+    {s:'Blended, 4.35 L/kWh',a:'17.4',b:'202',t:'220',p:'92%',c:'0.70%'},
+    {s:'LBNL as published, 4.52 L/kWh',a:'17.4',b:'210',t:'228',p:'92%',c:'0.72%'}]);
+
+  const ccool=[
+    {label:'Open cooling tower, hot-dry climate',val:433,series:'s2',note:'WUE 2.2 L/kWh. Phoenix- or Las Vegas-vintage evaporative design, where low humidity makes evaporation especially effective and especially thirsty.'},
+    {label:'Open cooling tower, typical',val:354,series:'s2',note:'WUE 1.8 L/kWh. The figure usually quoted as the industry average for evaporative systems.'},
+    {label:'Equinix, evaporative sites only',val:278,series:'s2',note:'WUE 1.41 L/kWh, split out by Equinix from its own estate — useful because it separates evaporative sites from the blended fleet.'},
+    {label:'Google fleet average',val:226,series:'s1',note:'WUE 1.15 L/kWh, disclosed. Implies roughly 55–63% of IT load on evaporative cooling. The price of running the industry’s best PUE at 1.09.'},
+    {label:'Equinix global fleet',val:179,series:'s1',note:'WUE 0.91 L/kWh across a mixed estate of older and newer sites.'},
+    {label:'Adiabatic / hybrid cooler',val:118,series:'s2',note:'WUE 0.60 L/kWh. Runs dry most of the year and sprays only on hot days, so the annual average collapses while the peak-day draw stays high — which is exactly the capacity problem host utilities care about.'},
+    {label:'Microsoft fleet average',val:53,series:'s1',note:'WUE 0.27 L/kWh, down from 2.3 in the early 2000s. Implies roughly 12–14% of load on evaporative.'},
+    {label:'Meta fleet average',val:37,series:'s1',note:'WUE 0.19 L/kWh. Among the lowest disclosed by any major operator.'},
+    {label:'AWS fleet average',val:24,series:'s1',note:'WUE 0.12 L/kWh, the lowest disclosed of the majors. Implies roughly 4–5% of load on evaporative.'},
+    {label:'Air-cooled chiller / dry cooler',val:5.9,series:'s3',note:'WUE 0.03 L/kWh. A radiator: it evaporates nothing, and the only remaining water is humidification. Chandler’s air-cooled campus runs 180,000 gal/yr across eight buildings.'},
+    {label:'Direct-to-chip + dry heat rejection',val:2,series:'s3',note:'WUE 0.01 L/kWh. Abilene’s design: roughly 1M gal one-time fill per building, then 50–100k gal/yr of top-up.'},
+    {label:'Seawater or district heat rejection',val:0.5,series:'s3',note:'Effectively zero freshwater. Google’s Hamina site cools on the Gulf of Finland and pipes waste heat into municipal district heating. Drawn at the axis floor.'}
+  ];
+  hbars('#ccool',{items:ccool,max:450,unit:' M gal',ticks:[0,100,200,300,400],tick:t=>t+'M',labW:310});
+  table('ccool',[{h:'Cooling technology',f:r=>r.label},{h:'M gal/yr',f:r=>String(r.val),num:true},{h:'Class',f:r=>({s2:'Evaporative',s1:'Disclosed fleet avg',s3:'Dry / near-dry'})[r.series]},{h:'Basis',f:r=>r.note}],ccool);
+
+  const csplit=[
+    {label:'Evaporative · blended grid incl. hydro',on:354,ind:1023,note:'The worst combination on this page: an evaporative campus charged the full hydro-inclusive grid factor. 74% generation.'},
+    {label:'Evaporative · US thermal grid average',on:354,ind:408,note:'Roughly even, 54% generation. This is the combination closest to a typical older US facility, and it is the one where neither pipe dominates.'},
+    {label:'Evaporative · gas combined cycle',on:354,ind:170,note:'On-site now dominates at 68%. The cleaner the grid, the more the facility’s own cooling tower becomes the whole story.'},
+    {label:'Dry cooling · US thermal grid average',on:5.9,ind:461,note:'99% generation. This is the combination the report’s headline split describes, and it is where that claim is strongest.'},
+    {label:'Evaporative · renewables',on:354,ind:4.3,note:'99% on-site. A fully renewable-powered evaporative campus still boils away 354M gal — nearly twice the total of a gas-powered dry-cooled one.'},
+    {label:'Dry cooling · gas combined cycle',on:5.9,ind:192,note:'97% generation, and a lower total than the renewable-powered evaporative campus above it.'},
+    {label:'Dry cooling · renewables',on:5.9,ind:4.8,note:'The best achievable combination: about 11M gal/yr total, against 1,377M at the worst. A 125-fold span on two design choices.'}
+  ];
+  stacked('#csplit',{max:1400,unit:'M gal',ticks:[0,350,700,1050,1400],labW:300,
+    rows:csplit.map(r=>({label:r.label,segs:[{label:'On-site cooling',val:r.on,series:'s1',note:r.note},{label:'Power generation',val:r.ind,series:'s2',note:r.note}]}))});
+  table('csplit',[{h:'Cooling and grid',f:r=>r.label},{h:'On-site',f:r=>String(Math.round(r.on)),num:true},{h:'Generation',f:r=>String(Math.round(r.ind)),num:true},{h:'Total',f:r=>String(Math.round(r.on+r.ind)),num:true},{h:'% generation',f:r=>Math.round(r.ind/(r.on+r.ind)*100)+'%',num:true},{h:'Note',f:r=>r.note}],csplit);
+
+  const c3=[
+    {label:'Irrigation, consumption',val:26700,series:'de',note:'USGS 2015: 73.2 bn gal/day consumed of 118 withdrawn, a 62% consumption ratio.'},
+    {label:'Public supply, withdrawal',val:14300,series:'de',note:'USGS 2015: 39.2 bn gal/day, serving 87% of the population.'},
+    {label:'Thermoelectric power, consumption',val:985,series:'de',note:'USGS 2015: 2.7 bn gal/day consumed of about 103 withdrawn. Once-through cooling returns nearly all of it.'},
+    {label:'Data centers, all-in (both factors)',val:150,lo:101,hi:228,series:'s1',note:'On-site 17.4 plus 84–210 of generation water. 0.32–0.72% of US freshwater consumption; 0.10–0.22% of withdrawals.'},
+    {label:'Bitcoin mining, US share, all-in',val:28,lo:25,hi:32,series:'de',note:'de Vries 2023: 93–120 bn L on the same on-site-plus-generation method.'},
+    {label:'Data centers, on-site only',val:17.4,series:'s1',note:'LBNL 2023. The indoor water of about 580,000 Americans. Includes training runs.'},
+    {label:'Google, all data centers worldwide, 2025',val:10.9,series:'de',note:'Google 2026 report, up 34% on 2024. Council Bluffs, Iowa alone was 1.3 bn gal.'},
+    {label:'TSMC Arizona, three fabs at full build',val:6.3,series:'de',note:'City of Phoenix projection of 17.2M gal/day. The first fab alone is 4.75M gal/day today. Not counted in any data-center total.'},
+    {label:'Google, The Dalles OR, 2025',val:0.55,series:'s1',note:'About 550M gal, roughly 40% of the city’s water. Disclosed only after a public-records settlement.'},
+    {label:'One average 18-hole golf course, season',val:0.062,series:'de',note:'USGA: about 312,000 gal/day over a 200-day season. Arid Southwest courses exceed 1M gal/day.'}
+  ];
+  ladder('#c3',{items:c3,min:0.03,max:60000,unit:'bn gal',tick:v=>v<1?v+' bn':(v>=1000?(v/1000)+' tn':v+' bn'),labW:310});
+  table('c3',[{h:'Item',f:r=>r.label},{h:'bn gal / yr',f:r=>fmtRange(r,''),num:true},{h:'Basis',f:r=>r.note}],c3);
+
+  const c4=[
+    {label:'Dana, light — 8 prompts/day',val:1.5,lo:0.4,hi:1.5,series:'s1',note:'2,920 simple prompts. Central 0.38 gal, conservative 1.47 gal. With training 2.0 gal.'},
+    {label:'Marcus, moderate — 60/day',val:62.9,lo:12.4,hi:62.9,series:'s2',note:'18,250 simple plus 3,650 reasoning. Central 12.4 gal, conservative 62.9 gal. With training 85 gal.'},
+    {label:'Priya, heavy — 700 calls/day',val:2725,lo:510,hi:2725,series:'s3',note:'73,000 simple plus 182,500 agent calls. Central 510 gal, conservative 2,725 gal. With training 3,680 gal.'}
+  ];
+  ladder('#c4',{items:c4,min:0.1,max:60000,unit:'gal',tick:v=>v>=1000?(v/1000)+'k gal':v+' gal',labW:310,refs:[
+    {label:'burger, blue water',val:18.5},{label:'1 shower',val:17,anchor:'end'},{label:'year of showers',val:6132},{label:'indoor use / yr',val:29930,anchor:'end'}]});
+  table('c4',[{h:'User',f:r=>r.label},{h:'Central',f:r=>fmtNum(r.lo)+' gal',num:true},{h:'Conservative',f:r=>fmtNum(r.hi)+' gal',num:true},{h:'With training (+35%)',f:r=>fmtNum(r.hi*1.35)+' gal',num:true},{h:'Basis',f:r=>r.note}],c4);
+
+  const c5=[
+    {label:'Dana’s year of AI',val:1.0,series:'s1',note:'2,920 prompts at 0.34 Wh. About 16 cents of electricity.'},
+    {label:'Smartphone, charged daily for a year',val:3,series:'de',note:'Typical 2–4 kWh/yr.'},
+    {label:'Marcus’s year of AI',val:43,series:'s1',note:'18,250 simple at 0.34 Wh plus 3,650 reasoning at 10 Wh. About $7.'},
+    {label:'Laptop, 8 hours a day',val:146,series:'de',note:'50 W × 8 h × 365.'},
+    {label:'65-inch TV, 5 hours a day',val:183,series:'de',note:'100 W × 5 h × 365.'},
+    {label:'Refrigerator',val:400,series:'de',note:'Typical modern unit, 350–450 kWh/yr.'},
+    {label:'Gaming PC, 4 hours a day',val:511,series:'de',note:'350 W × 4 h × 365.'},
+    {label:'Electric clothes dryer',val:750,series:'de',note:'Typical household use.'},
+    {label:'Priya’s year of AI',val:1850,series:'s1',note:'73,000 simple plus 182,500 agent calls at 10 Wh. About $296 at 16 c/kWh. With training, 2,500 kWh.'},
+    {label:'Central air conditioning, one season',val:2200,series:'de',note:'Highly climate-dependent, 2,000–3,500 kWh.'},
+    {label:'EV, 12,000 miles',val:3430,series:'de',note:'3.5 miles per kWh before charging losses.'},
+    {label:'Electric water heater',val:4000,series:'de',note:'Typical household, 3,500–4,500 kWh.'},
+    {label:'One person’s share of home electricity',val:4183,series:'de',note:'10,500 kWh per household over 2.51 people.'},
+    {label:'Average US household, everything',val:10500,series:'de',note:'EIA residential average.'}
+  ];
+  ladder('#c5',{items:c5,min:0.5,max:20000,unit:'kWh',tick:v=>v>=1000?(v/1000)+'k kWh':v+' kWh',labW:310});
+  table('c5',[{h:'Annual load',f:r=>r.label},{h:'kWh / yr',f:r=>fmtNum(r.val),num:true},{h:'Basis',f:r=>r.note}],c5);
+
+  const c6=[
+    {label:'The Dalles, OR (Google), 2021 → 2025',val:35,lo:29,hi:40,series:'s1',note:'355M gal was 29% of city water in 2021; about 550M and 40% cited for 2025.'},
+    {label:'Potomac / DC metro, 2035 projection',val:25,series:'s1',note:'ICPRB projects growth from about 8% in 2025 to 25% by 2035.'},
+    {label:'Loudoun County, VA (200+ sites)',val:12.5,lo:10,hi:15,series:'s1',note:'Two county-linked figures circulate. About 40 sites run on reclaimed water.'},
+    {label:'Newton County, GA (Meta)',val:10,series:'s1',note:'County water authority figure. Deficit projected by 2030; nearby private wells have failed.'},
+    {label:'Potomac / DC metro, 2025',val:8,series:'s1',note:'ICPRB estimate of the data-center share of metro consumption.'},
+    {label:'West Des Moines, IA (Microsoft), July 2022',val:6,series:'s1',note:'11.5M gal in the month GPT-4 finished training. A peak month driven by a training run, not an annual average.'},
+    {label:'Texas statewide, 2030 scenario',val:2.7,series:'s1',note:'One modelled all-in scenario near 225 bn gal/yr. Study range is 29–161 bn gal.'},
+    {label:'Hillsboro, OR (14 sites)',val:1.76,series:'s1',note:'City figure for 2025.'},
+    {label:'United States, all-in, consumption basis',val:0.5,lo:0.32,hi:0.72,series:'de',note:'101–228 bn gal against roughly 31,500 bn gal/yr of national freshwater consumption.'}
+  ];
+  hbars('#c6',{items:c6,max:45,unit:'%',ticks:[0,10,20,30,40],tick:t=>t+'%',labW:310});
+  table('c6',[{h:'Place',f:r=>r.label},{h:'Share',f:r=>fmtRange(r,'%'),num:true},{h:'Basis',f:r=>r.note}],c6);
+
+  const MAP=[
+    ['AK','Alaska',0,0,1],['ME','Maine',10,0,1],
+    ['WI','Wisconsin',5,1,1,null,null,'Microsoft Fairwater at Mount Pleasant, closed-loop, about 8.4M gal/yr at full build.'],
+    ['VT','Vermont',9,1,1],['NH','New Hampshire',10,1,1],
+    ['WA','Washington',0,2,2,null,null,'Quincy hosts Microsoft; the state’s first industrial water-reuse utility saves about 380M gal/yr.','arid east, wet west'],
+    ['ID','Idaho',1,2,3],['MT','Montana',2,2,2],['ND','North Dakota',3,2,2],['MN','Minnesota',4,2,1,null,null,'First state to require a water permit as a gating step for large data centers, 2025.'],
+    ['IL','Illinois',5,2,1,905,'Chicago','Draws from Lake Michigan and the basin is not stressed, yet Bloomberg counts 23 Illinois facilities in acute stress. An unresolved tension.'],
+    ['MI','Michigan',6,2,1],['NY','New York',8,2,1,null,null,'Statewide moratorium enacted July 2026. Upstate hydro corridor is among the best combined sites in the country.'],
+    ['MA','Massachusetts',9,2,1],['RI','Rhode Island',10,2,1],
+    ['OR','Oregon',0,3,2,null,null,'The Dalles: Google takes 29 to 40 percent of city water, disclosed only after a records lawsuit.','arid east, wet west'],
+    ['NV','Nevada',1,3,4],['WY','Wyoming',2,3,3],['SD','South Dakota',3,3,2],
+    ['IA','Iowa',4,3,1,null,null,'West Des Moines hit about 6 percent of district water in the month GPT-4 finished training.'],
+    ['IN','Indiana',5,3,1],['OH','Ohio',6,3,1,1170,'Columbus','The New Albany cluster is not in the Great Lakes basin; it drains to the Scioto and Ohio.'],
+    ['PA','Pennsylvania',7,3,1,null,null,'19.6 GW pipeline on the Susquehanna, anchored by a 1.9 GW nuclear power purchase.'],
+    ['NJ','New Jersey',8,3,1],['CT','Connecticut',9,3,1],
+    ['CA','California',0,4,4,489,'Silicon Valley','Power-constrained; the market has stalled at about 489 MW.','wet north, arid south'],
+    ['UT','Utah',1,4,4,null,null,'One of the ten largest state pipelines at 18.7 GW, in one of the most stressed basins in the country.'],
+    ['CO','Colorado',2,4,4,null,null,'Aurora banned evaporative cooling for new data centers in 2025.','Front Range stressed, west slope less so'],
+    ['NE','Nebraska',3,4,3,null,null,'Google’s Nebraska water use rose roughly 16-fold in three years.','Ogallala'],
+    ['MO','Missouri',4,4,1],['KY','Kentucky',5,4,1],['WV','West Virginia',6,4,1],['MD','Maryland',7,4,1],['DE','Delaware',8,4,1],
+    ['AZ','Arizona',1,5,4,807,'Phoenix','Chandler caps water at 115 gal/day per 1,000 sq ft; Marana refuses potable water for cooling. Some areas can no longer get a water commitment at all.'],
+    ['NM','New Mexico',2,5,4,null,null,'Project Jupiter seeks up to 782M gal/yr while the state must cut groundwater use. Rio Grande flow down about 16 percent since 2000.'],
+    ['KS','Kansas',3,5,3,null,null,'Ogallala.'],['AR','Arkansas',4,5,1],
+    ['TN','Tennessee',5,5,1,null,null,'xAI Colossus draws on the Memphis Sand aquifer toward 5M gal/day; the promised greywater plant has stalled.'],
+    ['VA','Virginia',6,5,1,4497,'N. Virginia','The largest data-center concentration on earth, on the Potomac. Bloomberg still ranks Virginia first for acute-stress facilities, which is the sharpest unresolved tension in this topic.'],
+    ['NC','North Carolina',7,5,1],
+    ['OK','Oklahoma',3,6,3],['LA','Louisiana',4,6,1,null,null,'Meta Hyperion scaling toward 5 GW on the Mississippi alluvial aquifer.'],
+    ['MS','Mississippi',5,6,1],['AL','Alabama',6,6,1],['SC','South Carolina',7,6,1,null,null,'Google’s Berkeley County groundwater permit was expanded to 549M gal/yr.'],
+    ['HI','Hawaii',0,7,2],
+    ['TX','Texas',3,7,3,870,'Dallas-Fort Worth','The largest pipeline in the country at about 85 GW. West Texas sits on the declining Ogallala and Edwards-Trinity; the Gulf Coast does not. ERCOT paused all new data-center interconnections in August 2026.','arid west, wet east'],
+    ['GA','Georgia',6,7,1,2882,'Atlanta','Passed Northern Virginia in capacity under construction in H1 2026. Newton County: one campus is 10 percent of county water and nearby wells have failed.'],
+    ['FL','Florida',7,7,2]
+  ].map(a=>({id:a[0],name:a[1],c:a[2],r:a[3],s:a[4],mw:a[5]||null,market:a[6]||null,note:a[7]||'',split:a[8]||null}));
+  tilemap('#cmap',{tiles:MAP});
+  table('cmap',[{h:'State',f:r=>r.name},{h:'Water stress',f:r=>STRESS[r.s]},{h:'Major market',f:r=>r.market||'—'},{h:'MW',f:r=>r.mw?r.mw.toLocaleString('en-US'):'—',num:true},{h:'Splits internally',f:r=>r.split||'—'},{h:'Note',f:r=>r.note||''}],
+    MAP.slice().sort((a,b)=>(b.mw||0)-(a.mw||0)||b.s-a.s||a.name.localeCompare(b.name)));
+
+  const c9=[
+    {label:'Bloomberg: new builds since 2022',val:66,series:'s2',note:'Facility count, new builds and pipeline only, DC Byte crossed with WRI Aqueduct basin stress. The most-quoted figure and the most often misread as a statement about the existing fleet.'},
+    {label:'Ceres: power plants serving 7 top states',val:66,series:'s3',note:'Share of water-using power plants in medium-high to extremely-high stress, across 7 states holding about half the US fleet. Measures generation siting, not data-center siting.'},
+    {label:'Maplecroft: global hubs, 2030',val:52,series:'s1',note:'Metro-level hubs rated high or very high on a Water Stress Index under a warming scenario. Global, hub-count, forward-looking. Routinely misattributed to MSCI.'},
+    {label:'Siddik 2021: US servers on stressed power',val:50,series:'s1',note:'Share of US servers fully or partly powered by plants in water-stressed regions. Peer-reviewed and US-specific, but on 2018 data, before the AI build-out.'},
+    {label:'MSCI: existing global facilities, 2050',val:25,series:'s1',note:'Share of 13,558 existing facilities projected to see more frequent water-scarcity days by 2050. A future-scarcity metric, not current basin stress.'},
+    {label:'Siddik 2021: US direct water footprint',val:20,series:'s1',note:'Share of data centers’ direct cooling-water footprint drawn from moderately-to-highly stressed watersheds, 2018. The closest thing to a real answer on the existing stock, and it is seven years stale.'}
+  ];
+  hbars('#c9',{items:c9,max:75,unit:'%',ticks:[0,25,50,75],tick:t=>t+'%',labW:310});
+  table('c9',[{h:'Statistic',f:r=>r.label},{h:'Figure',f:r=>r.val+'%',num:true},{h:'Population measured',f:r=>({s2:'New builds / pipeline',s1:'Existing stock',s3:'Power plants'})[r.series]},{h:'What it actually measures',f:r=>r.note}],c9);
+
+  const c10=[
+    {label:'Texas',val:85,series:'s1',note:'West Texas sits on the declining Ogallala and Edwards-Trinity aquifers and is the single largest concentration of new hyperscale capacity in the country; the Gulf Coast is not stressed. This one classification swings the national answer more than everything else combined.'},
+    {label:'Virginia',val:29.5,series:'s1',note:'Bloomberg ranks Virginia first for data centers in acute water stress, yet the Potomac is a large perennial river. This tension is unresolved in the literature and deserves a direct basin-level check.'},
+    {label:'Pennsylvania',val:19.6,series:'s3',note:'Susquehanna basin, water-abundant. Anchored by the 1.9 GW Amazon nuclear power purchase at Talen’s Susquehanna plant.'},
+    {label:'Utah',val:18.7,series:'s2',note:'Great Basin, among the most water-stressed states in the country. One of the ten largest pipelines regardless.'},
+    {label:'Georgia',val:14.3,series:'s3',note:'Atlanta passed Northern Virginia in capacity under construction in the first half of 2026, the first hard evidence of relative hub shift.'},
+    {label:'West Virginia',val:13.4,series:'s3',note:'Riding Appalachian gas and power access.'},
+    {label:'Illinois',val:11.7,series:'s1',note:'Chicago draws from Lake Michigan and the basin is not stressed, yet Illinois appears in Bloomberg’s acute-stress count with 23 facilities. Another metric-versus-reality tension.'},
+    {label:'New Mexico',val:10.7,series:'s2',note:'Almost entirely the single Project Jupiter campus in Doña Ana County. Rio Grande flow is down about 16 percent since 2000 and the state must cut groundwater use while this project seeks up to 782 million gallons a year.'},
+    {label:'Arizona',val:10.4,series:'s2',note:'Maricopa County alone has roughly 3 GW planned on top of 2.4 GW operating, in a metro where some areas can no longer obtain a potable-water commitment.'},
+    {label:'Indiana',val:8.7,series:'s3',note:'Amazon has committed roughly $26bn across two northern Indiana campuses.'},
+    {label:'Wisconsin',val:4.6,series:'s3',note:'Microsoft’s Fairwater campus at Mount Pleasant, using closed-loop cooling at about 8.4 million gallons a year at full build.'}
+  ];
+  hbars('#c10',{items:c10,max:90,unit:' GW',ticks:[0,25,50,75],tick:t=>t+' GW',labW:310});
+  table('c10',[{h:'State',f:r=>r.label},{h:'Announced GW',f:r=>String(r.val),num:true},{h:'Water stress',f:r=>({s2:'High / extreme',s1:'Mixed or contested',s3:'Low'})[r.series]},{h:'Note',f:r=>r.note}],c10);
+
+  fan('#c7a',{unit:'TWh',max:620,ticks:[0,200,400,600],points:[
+    {year:2014,val:58,note:'LBNL'},{year:2018,val:76,note:'LBNL, approximate'},
+    {year:2023,val:176,note:'LBNL: 4.4% of US electricity'},
+    {year:2028,lo:325,hi:580,note:'LBNL low and high scenario: 6.7–12% of US electricity'}]});
+  fan('#c7b',{unit:'bn gal',max:80,ticks:[0,20,40,60,80],points:[
+    {year:2014,val:5.6,note:'LBNL: 21.2 bn L'},{year:2023,val:17.4,note:'LBNL: 66 bn L'},
+    {year:2028,lo:16,hi:33,tag:'hyper',note:'LBNL hyperscale-only: 60–124 bn L'},
+    {year:2028,lo:38,hi:73,tag:'all',note:'Press-cited LBNL-attributed range for all data centers, not reconciled to a primary table'}]});
+  table('c7',[{h:'Series',f:r=>r.s},{h:'2014',f:r=>r.a,num:true},{h:'2023',f:r=>r.b,num:true},{h:'2028',f:r=>r.c},{h:'2030, other sources',f:r=>r.d}],[
+    {s:'US data-center electricity, TWh',a:'58',b:'176',c:'325–580',d:'Goldman about 750 US; EPRI 9–17% of load; IEA 945 global'},
+    {s:'US on-site water, bn gal',a:'5.6',b:'17.4',c:'16–33 hyperscale / 38–73 broader',d:'Bluefield: indirect 54 → 91 bn gal, 72% of total by 2030'},
+    {s:'Global AI water',a:'—',b:'83–202 (2025, de Vries-Gao)',c:'168–392 (Morgan Stanley)',d:'Ren: 1,110–1,740 bn gal withdrawal by 2027'}]);
+
+  const c8=[
+    {label:'Wind',val:1,series:'s1',note:'Macknick median is zero, drawn at the axis floor. Blade washing and maintenance only.'},
+    {label:'Solar PV, rain-cleaned (most of the US)',val:2,lo:1,hi:5,series:'s1',note:'Fixed-tilt arrays in wet and temperate climates are washed rarely or never. Effectively zero operational water.'},
+    {label:'Gas simple cycle / combustion turbine',val:2,lo:1,hi:4,series:'s1',note:'No steam cycle, so no cooling water. Burns more fuel per MWh than combined cycle. Behind-the-meter turbines at Abilene and Memphis.'},
+    {label:'Gas combined cycle, dry cooled',val:4,lo:2,hi:6,series:'s1',note:'Air-cooled condenser. Costs efficiency, especially on hot days.'},
+    {label:'Solar PV, desert, washed regularly',val:26,lo:15,hi:33,series:'s1',note:'NREL median for utility PV is 26. This is the washing-intensive case, not the fleet.'},
+    {label:'Concentrating solar, dry cooled',val:80,series:'s2',note:'Most new CSP is dry-cooled. A fraction of the wet-cooled figure.'},
+    {label:'Gas combined cycle, once-through',val:100,series:'s2',note:'Withdraws roughly 11,400 gal/MWh and consumes about 100.'},
+    {label:'Coal, once-through',val:250,series:'s2',note:'Withdraws about 36,000 gal/MWh, the largest withdrawal on the grid, but consumes less than a tower plant.'},
+    {label:'Nuclear, once-through',val:269,series:'s2',note:'Withdraws roughly 44,000 gal/MWh and consumes about 269.'},
+    {label:'Gas combined cycle, cooling tower',val:198,lo:130,hi:300,series:'s2',note:'Only the steam bottoming cycle needs cooling water. The workhorse of new US dispatchable capacity.'},
+    {label:'Nuclear, cooling tower',val:672,lo:580,hi:845,series:'s2',note:'Among the highest consumption per MWh of anything routinely built.'},
+    {label:'Coal, cooling tower',val:687,lo:480,hi:1100,series:'s2',note:'Macknick median for a generic coal plant with a tower.'},
+    {label:'Concentrating solar, wet cooled',val:865,lo:725,hi:1109,series:'s2',note:'Macknick median for a wet-cooled trough is 865, not the 906 an earlier draft of this report used. Steam cycle with cooling towers, usually in exactly the deserts that can least afford it.'},
+    {label:'Hydropower — net of the counterfactual (Grubert)',val:1585,series:'s3',note:'US system-wide net consumption, 1.7 m³/GJ, after subtracting what the pre-dam land and river would have evaporated anyway and adjusting for multipurpose reservoirs. The most defensible published US figure. Still the highest of any source, but 2.3× coal rather than 26×. Pacific Northwest net is effectively zero.'},
+    {label:'Hydropower — gross, fully allocated to power',val:10038,lo:4491,hi:18000,series:'s3',note:'Gross reservoir evaporation charged entirely to electricity. Grubert US gross 10,038; Macknick median 4,491 from just three data points; Torcellini 18,000 from the 120 largest dams. This is the convention behind the high grid factors, and NREL itself excluded hydro from its headline comparisons because of it.'}
+  ];
+  const c8cfg={items:c8,min:1,max:20000,unit:'gal/MWh',tick:v=>v>=1000?(v/1000)+'k':String(v),labW:330};
+  ladder('#c8',c8cfg);
+  table('c8',[{h:'Technology and cooling',f:r=>r.label},{h:'gal/MWh consumed',f:r=>r.lo!=null?r.lo+'–'+r.hi:(r.val<=1?'≈0':String(r.val)),num:true},{h:'Median',f:r=>r.val<=1?'≈0':String(r.val),num:true},{h:'100 MW campus, M gal/yr',f:r=>r.val<=1?'≈0':fmtNum(r.val*819000/1e6),num:true},{h:'Basis',f:r=>r.note}],c8);
+
+  function drawAll(){
+    ladder('#c1',{items:c1,min:0.003,max:5000,unit:'mL',tick:mlTick,labW:310,refs:[{label:'500 mL bottle',val:500}]});
+    stacked('#c2',{max:240,unit:'bn gal',ticks:[0,50,100,150,200],labW:270,rows:[
+      {label:'Thermal-only factor, 1.8 L/kWh',segs:[{label:'On-site',val:17.4,series:'s1'},{label:'Power plant',val:84,series:'s2'}]},
+      {label:'Blended factor, 4.52 L/kWh',segs:[{label:'On-site',val:17.4,series:'s1'},{label:'Power plant',val:210,series:'s2'}]}]});
+    ladder('#c3',{items:c3,min:0.03,max:60000,unit:'bn gal',tick:v=>v<1?v+' bn':(v>=1000?(v/1000)+' tn':v+' bn'),labW:310});
+    ladder('#c4',{items:c4,min:0.1,max:60000,unit:'gal',tick:v=>v>=1000?(v/1000)+'k gal':v+' gal',labW:310,refs:[
+      {label:'burger, blue water',val:18.5},{label:'1 shower',val:17,anchor:'end'},{label:'year of showers',val:6132},{label:'indoor use / yr',val:29930,anchor:'end'}]});
+    ladder('#c5',{items:c5,min:0.5,max:20000,unit:'kWh',tick:v=>v>=1000?(v/1000)+'k kWh':v+' kWh',labW:310});
+    hbars('#ccool',{items:ccool,max:450,unit:' M gal',ticks:[0,100,200,300,400],tick:t=>t+'M',labW:310});
+    stacked('#csplit',{max:1400,unit:'M gal',ticks:[0,350,700,1050,1400],labW:300,rows:csplit.map(r=>({label:r.label,segs:[{label:'On-site cooling',val:r.on,series:'s1'},{label:'Power generation',val:r.ind,series:'s2'}]}))});
+    hbars('#c6',{items:c6,max:45,unit:'%',ticks:[0,10,20,30,40],tick:t=>t+'%',labW:310});
+    hbars('#c9',{items:c9,max:75,unit:'%',ticks:[0,25,50,75],tick:t=>t+'%',labW:310});
+    hbars('#c10',{items:c10,max:90,unit:' GW',ticks:[0,25,50,75],tick:t=>t+' GW',labW:310});
+    fan('#c7a',{unit:'TWh',max:620,ticks:[0,200,400,600],points:[{year:2014,val:58},{year:2018,val:76},{year:2023,val:176},{year:2028,lo:325,hi:580}]});
+    fan('#c7b',{unit:'bn gal',max:80,ticks:[0,20,40,60,80],points:[{year:2014,val:5.6},{year:2023,val:17.4},{year:2028,lo:16,hi:33,tag:'hyperscale'},{year:2028,lo:38,hi:73,tag:'broader'}]});
+    ladder('#c8',c8cfg);
+  }
+  let rt;window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(drawAll,150);});
+  window.addEventListener('load',drawAll);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(drawAll);
+})();
+</script>
+
+</body>
+</html>
